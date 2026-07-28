@@ -76,7 +76,7 @@ Load an unpacked build from `.output/chrome-mv3` via
 
 ## Roadmap
 
-- **v0.1** — colour palette (by role) + typography + font-source detection +
+- **v0.1** ✅ — colour palette (by role) + typography + font-source detection +
   capture card in the library + CSS custom properties export
 - **v0.2** — native EyeDropper + Tailwind / SCSS / W3C exporters + colour/icon
   picker for tagging cards

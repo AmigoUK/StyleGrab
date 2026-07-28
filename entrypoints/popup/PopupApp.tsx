@@ -12,17 +12,25 @@ export function PopupApp() {
       .then(([tab]) => setRestricted(isRestrictedUrl(tab?.url)));
   }, []);
 
+  const [busy, setBusy] = useState(false);
+
   const capture = async () => {
-    const res = await sendToBackground({ type: 'capture' });
-    if (res.error === 'not-implemented') {
-      setHint('Capturing arrives in v0.1 — the scaffold is in place.');
-      return;
+    setBusy(true);
+    setHint(null);
+    try {
+      const res = await sendToBackground({ type: 'capture' });
+      if (res.error) {
+        const messages: Record<string, string> = {
+          restricted: "This page can't be scanned.",
+          'scan-failed': 'Nothing to scan on this page.',
+        };
+        setHint(messages[res.error] ?? `Could not capture: ${res.error}`);
+        return;
+      }
+      window.close(); // background opens the library on the new card
+    } finally {
+      setBusy(false);
     }
-    if (res.error) {
-      setHint(`Could not capture: ${res.error}`);
-      return;
-    }
-    window.close();
   };
 
   const openLibrary = () => {
@@ -50,8 +58,8 @@ export function PopupApp() {
       )}
 
       <div style="display: grid; gap: 6px;">
-        <button class="primary" disabled={restricted} onClick={capture}>
-          🎨 Capture this page
+        <button class="primary" disabled={restricted || busy} onClick={capture}>
+          {busy ? '⏳ Capturing…' : '🎨 Capture this page'}
         </button>
         <button onClick={openLibrary}>📚 Open library</button>
       </div>

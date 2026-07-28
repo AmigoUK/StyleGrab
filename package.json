@@ -3,7 +3,7 @@
   "description": "Capture colour palettes and typography from any website and export them as CSS variables, Tailwind config, SCSS or W3C design tokens.",
   "license": "MIT",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",

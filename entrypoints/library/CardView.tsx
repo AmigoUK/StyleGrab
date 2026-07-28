@@ -1,0 +1,186 @@
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { getThumbnail } from '@/lib/captureStore';
+import { EXPORT_FORMATS, getFormat } from '@/lib/exporters';
+import { updateCard } from '@/lib/storage';
+import type { ColorRole, FontSource, StyleCard } from '@/lib/types';
+import { COLOR_ROLES } from '@/lib/types';
+
+const ROLE_LABELS: Record<ColorRole, string> = {
+  background: 'Backgrounds',
+  text: 'Text',
+  accent: 'Accents',
+  border: 'Borders',
+};
+
+const SOURCE_LABELS: Record<FontSource, string> = {
+  google: 'Google Fonts',
+  adobe: 'Adobe Fonts',
+  'self-hosted': 'Self-hosted',
+  system: 'System',
+  unknown: 'Unknown',
+};
+
+function copyToClipboard(text: string): Promise<void> {
+  return navigator.clipboard.writeText(text);
+}
+
+function download(filename: string, text: string, mime: string): void {
+  const url = URL.createObjectURL(new Blob([text], { type: mime }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export function CardView({ card, onDelete }: { card: StyleCard; onDelete: (id: string) => void }) {
+  const [thumb, setThumb] = useState<string | null>(null);
+  const [formatId, setFormatId] = useState(EXPORT_FORMATS[0].id);
+  const [notes, setNotes] = useState(card.notes);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let url: string | null = null;
+    void getThumbnail(card.id).then((blob) => {
+      if (blob) {
+        url = URL.createObjectURL(blob);
+        setThumb(url);
+      }
+    });
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [card.id]);
+
+  const exported = useMemo(() => getFormat(formatId)?.render(card) ?? '', [formatId, card]);
+
+  const doCopy = async () => {
+    await copyToClipboard(exported);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const doDownload = () => {
+    const fmt = getFormat(formatId);
+    if (!fmt) return;
+    const host = safeHost(card.url);
+    download(`stylegrab-${host}.${fmt.ext}`, exported, fmt.mime);
+  };
+
+  const saveNotes = () => {
+    if (notes !== card.notes) void updateCard(card.id, { notes });
+  };
+
+  return (
+    <div class="card" style="display: grid; gap: 14px;">
+      <div class="row" style="align-items: flex-start; gap: 14px;">
+        {thumb ? (
+          <img
+            src={thumb}
+            alt=""
+            style="width: 220px; height: auto; border-radius: 6px; border: 1px solid var(--border); flex: 0 0 auto;"
+          />
+        ) : (
+          <div
+            style="width: 220px; height: 130px; border-radius: 6px; border: 1px dashed var(--border); flex: 0 0 auto; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 12px;"
+          >
+            no thumbnail
+          </div>
+        )}
+        <div style="flex: 1; min-width: 0;">
+          <a href={card.url} target="_blank" rel="noreferrer" style="color: var(--accent-hover); word-break: break-all;">
+            {card.title || card.url}
+          </a>
+          <div class="hint">{new Date(card.createdAt).toLocaleString()}</div>
+        </div>
+        <button class="danger" style="flex: 0 0 auto;" onClick={() => onDelete(card.id)}>
+          Delete
+        </button>
+      </div>
+
+      {COLOR_ROLES.map((role) =>
+        card.palette[role].length ? (
+          <div key={role}>
+            <h2>{ROLE_LABELS[role]}</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              {card.palette[role].map((swatch) => (
+                <div key={swatch.hex} class="swatch" title={`${swatch.hex} · ${swatch.count}×`}>
+                  <span class="swatch-chip" style={`background:${swatch.hex}`} />
+                  <span class="swatch-hex">{swatch.hex}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null,
+      )}
+
+      {card.typography.length > 0 && (
+        <div>
+          <h2>Typography</h2>
+          <div style="display: grid; gap: 8px;">
+            {card.typography.map((t) => (
+              <div key={t.family} style="display: grid; gap: 2px;">
+                <div class="row" style="gap: 8px;">
+                  <strong style="flex: 0 0 auto; font-family: var(--font-preview);">{t.family}</strong>
+                  <span class="source-badge">{SOURCE_LABELS[t.source]}</span>
+                </div>
+                <div class="hint" style="word-break: break-all;">{t.stack}</div>
+                <div class="hint">
+                  weights: {t.weights.join(', ') || '—'} · sizes: {t.sizes.map((s) => `${s}px`).join(', ') || '—'}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h2>Notes</h2>
+        <textarea
+          rows={2}
+          value={notes}
+          onInput={(e) => setNotes(e.currentTarget.value)}
+          onBlur={saveNotes}
+          placeholder="Your notes about this capture…"
+        />
+      </div>
+
+      <div>
+        <h2>Export</h2>
+        <div class="row" style="gap: 8px; margin-bottom: 8px;">
+          <select
+            style="flex: 0 0 auto; width: auto;"
+            value={formatId}
+            onChange={(e) => setFormatId(e.currentTarget.value)}
+          >
+            {EXPORT_FORMATS.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <button class="primary" style="flex: 0 0 auto;" onClick={doCopy}>
+            {copied ? '✓ Copied' : 'Copy'}
+          </button>
+          <button style="flex: 0 0 auto;" onClick={doDownload}>
+            Download
+          </button>
+        </div>
+        <textarea
+          readOnly
+          rows={Math.min(16, Math.max(4, exported.split('\n').length))}
+          class="export-preview"
+          value={exported}
+        />
+      </div>
+    </div>
+  );
+}
+
+function safeHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '') || 'capture';
+  } catch {
+    return 'capture';
+  }
+}

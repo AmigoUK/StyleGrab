@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
 import { AppFooter } from '@/components/AppFooter';
 import { AppVersion } from '@/components/AppVersion';
-import { loadCards } from '@/lib/storage';
+import { deleteThumbnail } from '@/lib/captureStore';
+import { loadCards, removeCard } from '@/lib/storage';
 import type { StyleCard } from '@/lib/types';
+import { CardView } from './CardView';
 
 export function LibraryApp() {
   const [cards, setCards] = useState<StyleCard[] | null>(null);
@@ -11,13 +13,22 @@ export function LibraryApp() {
     void loadCards().then(setCards);
   }, []);
 
+  const onDelete = async (id: string) => {
+    await removeCard(id);
+    await deleteThumbnail(id);
+    setCards((prev) => (prev ? prev.filter((c) => c.id !== id) : prev));
+  };
+
   return (
-    <div style="max-width: 960px; margin: 0 auto; padding: 24px 16px; min-height: 100vh; display: flex; flex-direction: column;">
+    <div style="max-width: 860px; margin: 0 auto; padding: 24px 16px; min-height: 100vh; display: flex; flex-direction: column;">
       <header class="row" style="margin-bottom: 20px;">
         <h1 style="margin: 0;">
           StyleGrab Library
           <AppVersion />
         </h1>
+        <span class="hint" style="flex: 0 0 auto;">
+          {cards ? `${cards.length} capture${cards.length === 1 ? '' : 's'}` : ''}
+        </span>
       </header>
 
       <main style="flex: 1;">
@@ -33,9 +44,9 @@ export function LibraryApp() {
           </div>
         )}
 
-        {cards !== null && cards.length > 0 && (
-          <div class="hint">{cards.length} capture(s) — card view arrives in v0.1.</div>
-        )}
+        {cards?.map((card) => (
+          <CardView key={card.id} card={card} onDelete={onDelete} />
+        ))}
       </main>
 
       <AppFooter />
