@@ -1,0 +1,12 @@
+node_modules/
+.wxt/
+.output/
+stats.html
+stats-*.json
+.env
+.env.*
+*.log
+.DS_Store
+._*
+test-results/
+*.png.tmp
