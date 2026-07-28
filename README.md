@@ -80,7 +80,7 @@ Load an unpacked build from `.output/chrome-mv3` via
   capture card in the library + CSS custom properties export
 - **v0.2** ✅ — native EyeDropper + Tailwind / SCSS / W3C exporters + colour/icon
   picker for tagging cards
-- **v0.3** — library search + notes + Chrome Web Store assets
+- **v0.3** ✅ — library search + notes + privacy policy + Chrome Web Store listing + e2e smoke
 
 See [CHANGELOG.md](./CHANGELOG.md) for released changes.
 

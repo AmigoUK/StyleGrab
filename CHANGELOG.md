@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [0.3.0] — 2026-07-28
+
+### Added
+- **Library search.** A search box filters captures by URL, title, notes, any
+  palette hex, or any typography family/stack/source (`lib/search.ts`), with a
+  no-matches message. Pure filter, unit-tested.
+- **Privacy policy** (`PRIVACY.md`) and a Chrome Web Store listing document
+  (`docs/STORE_LISTING.md`) with the listing copy and a pre-submission asset
+  checklist.
+- **End-to-end smoke test** (`scripts/e2e.mjs`, `npm run e2e`): loads the built
+  extension into a real Chromium via Playwright and asserts the library page
+  renders. Verified passing under `xvfb-run`.
+
 ## [0.2.0] — 2026-07-28
 
 ### Added
@@ -68,7 +81,8 @@ _Nothing yet._
 - Shared `AppFooter` / `AppVersion` components and the dark-theme token stylesheet (`assets/ui.css`).
 - Project docs: `README.md`, `CLAUDE.md`, MIT `LICENSE`, this changelog. Placeholder brand icons.
 
-[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/AmigoUK/StyleGrab/releases/tag/v0.0.1
