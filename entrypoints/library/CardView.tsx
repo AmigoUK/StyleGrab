@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { ColorIconPicker, type TagValue } from '@/components/ColorIconPicker';
 import { getThumbnail } from '@/lib/captureStore';
 import { EXPORT_FORMATS, getFormat } from '@/lib/exporters';
 import { updateCard } from '@/lib/storage';
@@ -38,6 +39,14 @@ export function CardView({ card, onDelete }: { card: StyleCard; onDelete: (id: s
   const [formatId, setFormatId] = useState(EXPORT_FORMATS[0].id);
   const [notes, setNotes] = useState(card.notes);
   const [copied, setCopied] = useState(false);
+  const [tag, setTag] = useState<TagValue>({ color: card.color, icon: card.icon });
+  const [showPicker, setShowPicker] = useState(false);
+
+  const setTagValue = (patch: TagValue) => {
+    const next = { ...tag, ...patch };
+    setTag(next);
+    void updateCard(card.id, { color: next.color, icon: next.icon });
+  };
 
   useEffect(() => {
     let url: string | null = null;
@@ -88,15 +97,37 @@ export function CardView({ card, onDelete }: { card: StyleCard; onDelete: (id: s
           </div>
         )}
         <div style="flex: 1; min-width: 0;">
-          <a href={card.url} target="_blank" rel="noreferrer" style="color: var(--accent-hover); word-break: break-all;">
-            {card.title || card.url}
-          </a>
+          <div class="row" style="gap: 8px; margin-bottom: 2px;">
+            {(tag.icon || tag.color) && (
+              <span class="tag-chip" style={tag.color ? `border-color:${tag.color}` : undefined}>
+                {tag.color && <span class="tag-dot" style={`background:${tag.color}`} />}
+                {tag.icon && <span>{tag.icon}</span>}
+              </span>
+            )}
+            <a
+              href={card.url}
+              target="_blank"
+              rel="noreferrer"
+              style="color: var(--accent-hover); word-break: break-all; flex: 1;"
+            >
+              {card.title || card.url}
+            </a>
+          </div>
           <div class="hint">{new Date(card.createdAt).toLocaleString()}</div>
         </div>
+        <button
+          style="flex: 0 0 auto;"
+          aria-pressed={showPicker}
+          onClick={() => setShowPicker((v) => !v)}
+        >
+          🏷️ Tag
+        </button>
         <button class="danger" style="flex: 0 0 auto;" onClick={() => onDelete(card.id)}>
           Delete
         </button>
       </div>
+
+      {showPicker && <ColorIconPicker color={tag.color} icon={tag.icon} onChange={setTagValue} />}
 
       {COLOR_ROLES.map((role) =>
         card.palette[role].length ? (

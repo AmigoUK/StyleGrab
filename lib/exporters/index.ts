@@ -1,10 +1,12 @@
 import type { StyleCard } from '../types';
 import { toCssVariables } from './css';
+import { toScssVariables } from './scss';
+import { toTailwindConfig } from './tailwind';
+import { toW3CTokens } from './w3c';
 
 /**
- * Registry of export formats. v0.1 ships CSS custom properties; Tailwind, SCSS
- * and W3C design tokens land in v0.2. UI reads this list so adding a format is
- * a one-line change here.
+ * Registry of export formats. UI reads this list, so adding a format is a
+ * one-line change here.
  */
 
 export interface ExportFormat {
@@ -19,10 +21,13 @@ export interface ExportFormat {
 
 export const EXPORT_FORMATS: ExportFormat[] = [
   { id: 'css', label: 'CSS variables', ext: 'css', mime: 'text/css', render: toCssVariables },
+  { id: 'scss', label: 'SCSS variables', ext: 'scss', mime: 'text/x-scss', render: toScssVariables },
+  { id: 'tailwind', label: 'Tailwind config', ext: 'js', mime: 'text/javascript', render: toTailwindConfig },
+  { id: 'w3c', label: 'W3C design tokens', ext: 'json', mime: 'application/json', render: toW3CTokens },
 ];
 
 export function getFormat(id: string): ExportFormat | undefined {
   return EXPORT_FORMATS.find((f) => f.id === id);
 }
 
-export { toCssVariables };
+export { toCssVariables, toScssVariables, toTailwindConfig, toW3CTokens };

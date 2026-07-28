@@ -78,7 +78,7 @@ Load an unpacked build from `.output/chrome-mv3` via
 
 - **v0.1** ✅ — colour palette (by role) + typography + font-source detection +
   capture card in the library + CSS custom properties export
-- **v0.2** — native EyeDropper + Tailwind / SCSS / W3C exporters + colour/icon
+- **v0.2** ✅ — native EyeDropper + Tailwind / SCSS / W3C exporters + colour/icon
   picker for tagging cards
 - **v0.3** — library search + notes + Chrome Web Store assets
 

@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [0.2.0] — 2026-07-28
+
+### Added
+- **Three more export formats.** Alongside CSS custom properties, a card now
+  exports as **SCSS variables** (`lib/exporters/scss.ts`), a **Tailwind config**
+  fragment (`theme.extend.colors` + `fontFamily`, `lib/exporters/tailwind.ts`)
+  and **W3C design tokens** JSON (`$type`/`$value` nodes, `lib/exporters/w3c.ts`).
+  The library's export dropdown offers all four with live preview, copy and
+  download.
+- **Native eyedropper.** A "Pick a colour" action in the popup uses the browser's
+  `EyeDropper` API for pixel-perfect picking anywhere on screen; picked colours
+  accumulate and save to the library as a card (`lib/eyedropper.ts`). The button
+  is disabled where the API is unavailable — still no extra permission.
+- **Colour/icon tagging with a picker.** Cards can be tagged with a colour and an
+  emoji chosen from a clickable, offline `ColorIconPicker` (curated grids, never a
+  hand-entry field). The tag shows on the card header.
+
+### Changed
+- Exporters share family-name slugging and stack parsing via
+  `lib/exporters/util.ts`, so token names stay consistent across all four
+  formats. CSS output is unchanged.
+
 ## [0.1.0] — 2026-07-28
 
 ### Added
@@ -46,6 +68,7 @@ _Nothing yet._
 - Shared `AppFooter` / `AppVersion` components and the dark-theme token stylesheet (`assets/ui.css`).
 - Project docs: `README.md`, `CLAUDE.md`, MIT `LICENSE`, this changelog. Placeholder brand icons.
 
-[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/AmigoUK/StyleGrab/releases/tag/v0.0.1
