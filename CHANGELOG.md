@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [0.3.1] — 2026-07-28
+
+### Added
+- **Real brand icons** replacing the placeholder — a dark rounded tile with three
+  overlapping colour swatches (blue/amber/green), rendered from a 512px master to
+  every size (`public/icon/*`).
+- **Live extraction smoke** (`scripts/e2e-capture.mjs`, `npm run e2e:capture`):
+  runs the real scanner against a rendered page in headless Chromium and asserts
+  it reads computed colours, font families, borders and font URLs. Verified
+  passing — this closes the one seam the unit tests could not cover.
+
+### Fixed
+- Scanner de-duplicates collected font URLs (a stylesheet `<link>` no longer
+  appears twice).
+
 ## [0.3.0] — 2026-07-28
 
 ### Added
@@ -81,7 +96,8 @@ _Nothing yet._
 - Shared `AppFooter` / `AppVersion` components and the dark-theme token stylesheet (`assets/ui.css`).
 - Project docs: `README.md`, `CLAUDE.md`, MIT `LICENSE`, this changelog. Placeholder brand icons.
 
-[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.0.1...v0.1.0

@@ -56,5 +56,5 @@ export function collectRawScan(): RawScan {
     }
   }
 
-  return { url: location.href, title: document.title, samples, fontUrls };
+  return { url: location.href, title: document.title, samples, fontUrls: [...new Set(fontUrls)] };
 }
