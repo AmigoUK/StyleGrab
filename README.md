@@ -7,7 +7,7 @@ actually use. Open a page, grab its palette and type stack, and export a file
 you paste straight into your project — no transcribing hex codes from a
 screenshot.
 
-<!-- TODO(v0.3): add capture → export GIF here -->
+![StyleGrab: capture a page, then switch export formats in the library](docs/capture-export.gif)
 
 ## What it does
 

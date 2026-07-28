@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [0.3.2] — 2026-07-28
+
+### Added
+- **Capture→export demo GIF in the README** (`docs/capture-export.gif`), plus the
+  `scripts/make-gif.mjs` recorder (`npm run gif`) that generates it. The demo runs
+  the real scanner + aggregators against a mock site and drives the real library
+  UI, so the palette, typography and exports shown are genuine output — not a
+  mockup.
+
+### Changed
+- Docs/tooling only; the shipped extension is unchanged from v0.3.1.
+
 ## [0.3.1] — 2026-07-28
 
 ### Added
@@ -96,7 +108,8 @@ _Nothing yet._
 - Shared `AppFooter` / `AppVersion` components and the dark-theme token stylesheet (`assets/ui.css`).
 - Project docs: `README.md`, `CLAUDE.md`, MIT `LICENSE`, this changelog. Placeholder brand icons.
 
-[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.1.0...v0.2.0
