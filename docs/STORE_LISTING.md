@@ -46,8 +46,12 @@ Open source on GitHub. Issues and PRs welcome.
 
 ## Assets checklist (before submission)
 
-- [ ] Icon 128×128 (replace placeholder `public/icon/128.png` with final brand icon)
-- [ ] Screenshots 1280×800 (×3–5): popup, library card, export panel, eyedropper
+- [x] Icon 128×128 — brand icon in `public/icon/128.png`
+- [x] Screenshots 1280×800 (×4) in `docs/store/` — regenerate with `npm run shots`:
+  - `shot-1-palette.png` — colour palette grouped by role
+  - `shot-2-typography.png` — typography with font source + export
+  - `shot-3-export.png` — Tailwind config export
+  - `shot-4-popup.png` — popup (capture + eyedropper)
 - [ ] Small promo tile 440×280
 - [ ] Category: Developer Tools
 - [ ] Privacy policy URL → `PRIVACY.md` (host or link to the repo)

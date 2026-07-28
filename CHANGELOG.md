@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [0.3.3] — 2026-07-28
+
+### Added
+- **Chrome Web Store screenshots** (1280×800, ×4) in `docs/store/`, plus the
+  `scripts/make-shots.mjs` generator (`npm run shots`). Each frames the real
+  library, export panel and popup — rendered from the actual components with a
+  genuine card — on a branded background: palette by role, typography with font
+  source, Tailwind export, and the popup.
+
+### Changed
+- Demo GIF and screenshots now show a clean `https://acme.com/` capture URL and
+  detect Inter as Google Fonts (the mock site links the Google Fonts stylesheet).
+- Docs/tooling only; the shipped extension is unchanged from v0.3.1.
+
 ## [0.3.2] — 2026-07-28
 
 ### Added
@@ -108,7 +122,8 @@ _Nothing yet._
 - Shared `AppFooter` / `AppVersion` components and the dark-theme token stylesheet (`assets/ui.css`).
 - Project docs: `README.md`, `CLAUDE.md`, MIT `LICENSE`, this changelog. Placeholder brand icons.
 
-[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.2.0...v0.3.0

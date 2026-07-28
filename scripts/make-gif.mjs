@@ -61,6 +61,7 @@ const libBundle = await bundle(
 const uiCss = readFileSync(resolve(root, 'assets/ui.css'), 'utf8');
 
 const FIXTURE = `<!doctype html><html><head><meta charset="utf-8"><title>Acme — Ship faster</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800">
 <style>
   * { box-sizing: border-box; }
   body { margin:0; font-family: Inter, system-ui, sans-serif; background:#0b1220; color:#e6edf6; }
@@ -132,7 +133,7 @@ try {
   const thumb = (await site.screenshot()).toString('base64');
   await shot(site, 3);
 
-  const card = { ...scan, id: 'demo', createdAt: '2026-07-28T10:00:00.000Z', notes: '' };
+  const card = { ...scan, url: 'https://acme.com/', title: 'Acme — Ship faster', id: 'demo', createdAt: '2026-07-28T10:00:00.000Z', notes: '' };
 
   // 2. Standalone demo page rendering the REAL library UI with a chrome shim.
   const demo = `<!doctype html><html><head><meta charset="utf-8"><title>StyleGrab</title>

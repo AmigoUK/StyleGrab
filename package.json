@@ -3,7 +3,7 @@
   "description": "Capture colour palettes and typography from any website and export them as CSS variables, Tailwind config, SCSS or W3C design tokens.",
   "license": "MIT",
   "private": true,
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -15,6 +15,7 @@
     "e2e": "node scripts/e2e.mjs",
     "e2e:capture": "node scripts/e2e-capture.mjs",
     "gif": "node scripts/make-gif.mjs",
+    "shots": "node scripts/make-shots.mjs",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
