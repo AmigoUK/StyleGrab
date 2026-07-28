@@ -52,7 +52,7 @@ Open source on GitHub. Issues and PRs welcome.
   - `shot-2-typography.png` — typography with font source + export
   - `shot-3-export.png` — Tailwind config export
   - `shot-4-popup.png` — popup (capture + eyedropper)
-- [ ] Small promo tile 440×280
+- [x] Small promo tile 440×280 — `docs/store/promo-440x280.png` (`npm run shots`)
 - [ ] Category: Developer Tools
 - [ ] Privacy policy URL → `PRIVACY.md` (host or link to the repo)
 - [ ] Single purpose: "Capture and export a website's colours and typography as code."

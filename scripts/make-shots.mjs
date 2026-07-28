@@ -194,6 +194,33 @@ try {
     console.log(`✓ ${file}`);
     n++;
   }
+
+  // Small promo tile (440×280) — brand mark, tagline and real swatches.
+  const swatches = [...new Set([...card.palette.accent, ...card.palette.background, ...card.palette.text].map((s) => s.hex))].slice(0, 6);
+  const promo = `<!doctype html><html><head><meta charset="utf-8"><style>
+    *{box-sizing:border-box;margin:0}
+    body{width:440px;height:280px;overflow:hidden;font-family:Inter,system-ui,sans-serif;color:#e6edf6;
+      background:radial-gradient(620px 420px at 100% 0,#16233d,#0b1220 65%)}
+    .p{height:100%;padding:26px 28px;display:flex;flex-direction:column;justify-content:space-between}
+    .top{display:flex;align-items:center;gap:10px}
+    .mark{display:flex;gap:5px}.mark span{width:13px;height:13px;border-radius:50%}
+    .name{font-weight:800;font-size:22px;letter-spacing:-.01em}
+    .tag{font-family:Georgia,serif;font-size:27px;line-height:1.12;max-width:380px}
+    .sub{color:#9fb0c3;font-size:13px;margin-top:7px}
+    .sw{display:flex;gap:7px}
+    .sw span{width:36px;height:20px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
+  </style></head><body><div class="p">
+    <div class="top"><span class="mark"><span style="background:#3b82f6"></span><span style="background:#f59e0b"></span><span style="background:#22c55e"></span></span><span class="name">StyleGrab</span></div>
+    <div><div class="tag">Design tokens from any website.</div><div class="sub">Palettes &amp; type → CSS, Tailwind, SCSS, W3C. Free, no account.</div></div>
+    <div class="sw">${swatches.map((h) => `<span style="background:${h}"></span>`).join('')}</div>
+  </div></body></html>`;
+  const promoPage = await context.newPage();
+  await promoPage.setViewportSize({ width: 440, height: 280 });
+  await promoPage.setContent(promo, { waitUntil: 'load' });
+  await promoPage.waitForTimeout(150);
+  const promoFile = join(outDir, 'promo-440x280.png');
+  await promoPage.screenshot({ path: promoFile, clip: { x: 0, y: 0, width: 440, height: 280 } });
+  console.log(`✓ ${promoFile}`);
 } finally {
   await context.close();
   server.close();
