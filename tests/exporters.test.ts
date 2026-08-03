@@ -3,7 +3,7 @@ import { toCssVariables } from '../lib/exporters/css';
 import { toScssVariables } from '../lib/exporters/scss';
 import { toTailwindConfig } from '../lib/exporters/tailwind';
 import { toW3CTokens } from '../lib/exporters/w3c';
-import { uniqueFamilyNames } from '../lib/exporters/util';
+import { familySlug, stackToArray, uniqueFamilyNames } from '../lib/exporters/util';
 import { EXPORT_FORMATS, getFormat } from '../lib/exporters';
 import type { StyleCard } from '../lib/types';
 
@@ -115,5 +115,115 @@ describe('export registry', () => {
     expect(getFormat('tailwind')?.ext).toBe('js');
     expect(getFormat('w3c')?.mime).toBe('application/json');
     expect(getFormat('nope')).toBeUndefined();
+  });
+});
+
+describe('exporters — empty capture', () => {
+  const bare: StyleCard = {
+    id: 'bare',
+    url: '',
+    title: '',
+    createdAt: '2026-07-28T00:00:00.000Z',
+    notes: '',
+    palette: { background: [], text: [], accent: [], border: [] },
+    typography: [],
+  };
+
+  it('still produces syntactically valid output in every format', () => {
+    expect(toCssVariables(bare)).toBe('/* StyleGrab — capture */\n:root {\n}\n');
+    expect(toScssVariables(bare)).toBe('// StyleGrab — capture\n');
+    expect(JSON.parse(toW3CTokens(bare))).toEqual({ $description: 'StyleGrab — capture' });
+
+    const tw = toTailwindConfig(bare);
+    expect(JSON.parse(tw.slice(tw.indexOf('{'), tw.lastIndexOf('}') + 1))).toEqual({
+      theme: { extend: {} },
+    });
+  });
+});
+
+describe('exporters — awkward font names', () => {
+  const quoted: StyleCard = {
+    id: 'quoted',
+    url: 'https://example.com/',
+    title: '',
+    createdAt: '2026-07-28T00:00:00.000Z',
+    notes: '',
+    palette: { background: [], text: [], accent: [], border: [] },
+    typography: [
+      {
+        family: 'Helvetica Neue',
+        stack: '"Helvetica Neue", \'Segoe UI\', sans-serif',
+        weights: [400],
+        sizes: [16],
+        source: 'system',
+        count: 2,
+      },
+      {
+        family: 'Inter',
+        stack: 'Inter, sans-serif',
+        weights: [400],
+        sizes: [16],
+        source: 'google',
+        count: 1,
+      },
+      {
+        family: 'inter',
+        stack: 'inter, sans-serif',
+        weights: [400],
+        sizes: [16],
+        source: 'google',
+        count: 1,
+      },
+    ],
+  };
+
+  it('slugifies multi-word families and disambiguates casing collisions', () => {
+    expect(toCssVariables(quoted)).toContain('--font-helvetica-neue:');
+    expect(toCssVariables(quoted)).toContain('--font-inter:');
+    expect(toCssVariables(quoted)).toContain('--font-inter-2:');
+    expect(toScssVariables(quoted)).toContain('$font-helvetica-neue:');
+  });
+
+  it('unquotes each family when a stack becomes a JSON array', () => {
+    const parsed = JSON.parse(toW3CTokens(quoted));
+    expect(parsed.fontFamily['helvetica-neue'].$value).toEqual([
+      'Helvetica Neue',
+      'Segoe UI',
+      'sans-serif',
+    ]);
+    // Keys collide before disambiguation — all three families must survive.
+    expect(Object.keys(parsed.fontFamily)).toEqual(['helvetica-neue', 'inter', 'inter-2']);
+  });
+
+  it('produces a Tailwind fragment that actually evaluates as a module', () => {
+    const out = toTailwindConfig(quoted);
+    const module = { exports: {} as { theme?: { extend?: { fontFamily?: Record<string, string[]> } } } };
+    new Function('module', out)(module);
+    expect(module.exports.theme!.extend!.fontFamily!['helvetica-neue']).toEqual([
+      'Helvetica Neue',
+      'Segoe UI',
+      'sans-serif',
+    ]);
+  });
+});
+
+describe('export registry — every format renders', () => {
+  it('returns non-empty text for the same card in all four formats', () => {
+    for (const format of EXPORT_FORMATS) {
+      const out = format.render(card);
+      expect(out.length).toBeGreaterThan(0);
+      expect(out.endsWith('\n')).toBe(true);
+    }
+  });
+});
+
+describe('familySlug and stackToArray', () => {
+  it('falls back to a usable name when a family has no alphanumerics', () => {
+    expect(familySlug('!!!')).toBe('family');
+    expect(familySlug('  Helvetica  Neue  ')).toBe('helvetica-neue');
+  });
+
+  it('drops empty entries and quotes when splitting a stack', () => {
+    expect(stackToArray('"Inter", , sans-serif,')).toEqual(['Inter', 'sans-serif']);
   });
 });

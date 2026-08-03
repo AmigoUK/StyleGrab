@@ -10,3 +10,4 @@ stats-*.json
 ._*
 test-results/
 *.png.tmp
+coverage/

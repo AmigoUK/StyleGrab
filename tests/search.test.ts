@@ -53,3 +53,63 @@ describe('filterCards', () => {
     expect(filterCards([stripe, notion], 'zzz')).toEqual([]);
   });
 });
+
+describe('cardMatches — query normalisation', () => {
+  const card = makeCard({
+    id: 'q',
+    url: 'https://Example.COM/Pricing',
+    title: 'Acme — Pricing',
+    notes: 'Nice GRADIENT hero',
+    palette: { ...emptyPalette(), background: [{ hex: '#0A2540', count: 3 }] },
+    typography: [
+      {
+        family: 'Söhne',
+        stack: '"Söhne", sans-serif',
+        weights: [400],
+        sizes: [16],
+        source: 'self-hosted',
+        count: 2,
+      },
+    ],
+  });
+
+  it('ignores case on both sides and trims the query', () => {
+    expect(cardMatches(card, '  PRICING  ')).toBe(true);
+    expect(cardMatches(card, 'example.com')).toBe(true);
+    expect(cardMatches(card, 'gradient')).toBe(true);
+    expect(cardMatches(card, '#0a2540')).toBe(true);
+  });
+
+  it('matches a hex fragment typed without the leading #', () => {
+    expect(cardMatches(card, '0a2540')).toBe(true);
+    expect(cardMatches(card, 'a254')).toBe(true);
+  });
+
+  it('matches on the font source label and on the full stack', () => {
+    expect(cardMatches(card, 'self-hosted')).toBe(true);
+    expect(cardMatches(card, 'sans-serif')).toBe(true);
+    expect(cardMatches(card, 'söhne')).toBe(true);
+  });
+
+  it('does not match an unrelated query', () => {
+    expect(cardMatches(card, 'tailwind')).toBe(false);
+  });
+
+  it('treats a multi-word query as one literal phrase, not separate terms', () => {
+    expect(cardMatches(card, 'acme — pricing')).toBe(true);
+    expect(cardMatches(card, 'acme pricing')).toBe(false);
+  });
+});
+
+describe('filterCards — result identity', () => {
+  it('returns a new array when it actually filters', () => {
+    const cards = [stripe, notion];
+    const filtered = filterCards(cards, 'stripe');
+    expect(filtered).not.toBe(cards);
+    expect(filtered).toEqual([stripe]);
+  });
+
+  it('keeps the original order of the survivors', () => {
+    expect(filterCards([stripe, notion], 'https').map((c) => c.id)).toEqual(['stripe', 'notion']);
+  });
+});
