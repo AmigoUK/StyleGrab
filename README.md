@@ -92,7 +92,7 @@ npm run dev      # launches Chrome with the extension in watch mode
 npm run compile  # type-check (tsc --noEmit)
 npm run test     # unit + component tests
 npm run build    # production build → .output/chrome-mv3
-npm run zip      # packaged .zip + sources.zip for the Chrome Web Store
+npm run zip      # packaged .zip for the Chrome Web Store
 ```
 
 Load an unpacked build from `.output/chrome-mv3` via

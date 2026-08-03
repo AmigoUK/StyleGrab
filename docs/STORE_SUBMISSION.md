@@ -13,7 +13,6 @@ page is the order to do things in.
 |---|---|
 | A Chrome Web Store developer account | https://chrome.google.com/webstore/devconsole — one-off **US$5** registration fee, paid with a Google payments profile |
 | The package | `.output/stylegrab-<version>-chrome.zip`, produced by `npm run zip` |
-| The source archive | `.output/stylegrab-<version>-sources.zip`, also from `npm run zip` — upload it if you are asked about minified code |
 | A public privacy policy | https://amigouk.github.io/StyleGrab/privacy/ — must be reachable before you submit |
 
 Build the package fresh from a clean tree:
@@ -26,9 +25,13 @@ xvfb-run -a npm run e2e:all      # 27-check flow against the built extension
 npm run zip
 ```
 
-`npm run zip` prints both archive paths. The GitHub Release for the matching tag
-carries the same files, so you can also download them from
+`npm run zip` prints the archive path. The GitHub Release for the matching tag
+carries the same file, so you can also download it from
 https://github.com/AmigoUK/StyleGrab/releases.
+
+The Chrome Web Store has no source-upload step (that is Firefox's AMO). If a
+reviewer asks to see unminified source, point them at the public repository and
+the tag the package was built from.
 
 ## 1 — Create the item
 

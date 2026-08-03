@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to (re)build a release for, e.g. v0.4.0
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: verify, package and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # A tagged build is the artefact users install, so it gets the full gate,
+      # not a shortcut past it.
+      - name: Type-check
+        run: npm run compile
+
+      - name: Unit and component tests, with coverage thresholds
+        run: npm run test:coverage
+
+      - name: Build the extension
+        run: npm run build
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end against the built extension
+        run: xvfb-run -a npm run e2e:all
+
+      - name: Package for the Chrome Web Store
+        run: npm run zip
+
+      # The tag must describe a version that was actually released — otherwise
+      # the store package and the release notes would disagree.
+      - name: Check the tag matches package.json
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "v$version" ]; then
+            echo "Tag $TAG does not match package.json version $version." >&2
+            exit 1
+          fi
+
+      - name: Extract this version's changelog section
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          awk -v want="## [$version]" '
+            index($0, want) == 1 { found = 1; next }
+            found && (/^## \[/ || /^\[[^]]*\]: /) { exit }
+            found
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "No CHANGELOG section for $TAG — see CHANGELOG.md." > release-notes.md
+          fi
+
+      # `wxt zip` emits the store package; anyone who wants unminified source
+      # has the tag this was built from.
+      - name: Publish the GitHub Release with the store package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" .output/*.zip --clobber
+            gh release edit "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" .output/*.zip \
+              --title "$TAG" --notes-file release-notes.md
+          fi
