@@ -25,12 +25,20 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
       include: ['lib/**/*.ts', 'components/**/*.tsx', 'entrypoints/**/*.tsx'],
-      exclude: ['lib/types.ts', 'lib/extract/types.ts'],
+      exclude: [
+        'lib/types.ts',
+        'lib/extract/types.ts',
+        // Runs inside the page's isolated world, not in Node — its coverage comes
+        // from the real-browser smoke in `scripts/e2e-capture.mjs`.
+        'lib/extract/scanner.ts',
+        // Three-line render() bootstraps, covered end-to-end by `scripts/e2e-flow.mjs`.
+        'entrypoints/**/main.tsx',
+      ],
       thresholds: {
-        lines: 85,
-        statements: 85,
-        functions: 85,
-        branches: 80,
+        lines: 95,
+        statements: 93,
+        functions: 90,
+        branches: 88,
       },
     },
   },
