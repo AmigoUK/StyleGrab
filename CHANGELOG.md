@@ -9,6 +9,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [0.4.0] — 2026-08-03
+
+Everything the Chrome Web Store asks for, and the test coverage to stand behind
+what is submitted.
+
+### Added
+- **Component and integration test suite** (123 tests, up from 18). A single
+  fake `chrome` API and an in-memory IndexedDB (`tests/setup.ts`) back every
+  suite, so the popup, library and card are exercised through the DOM a user
+  clicks — capture guards, error-code translation, eyedropper picks, search,
+  export switching, downloads, notes and tagging — alongside new unit coverage
+  for `lib/storage.ts`, `lib/captureStore.ts`, `lib/capture.ts` and harder
+  edge cases across extraction and the exporters.
+- **Coverage thresholds** enforced in `vitest.config.ts` (`npm run test:coverage`):
+  100% of lines and 92% of branches across `lib/`, `components/` and the pages.
+- **End-to-end flow against the built extension** (`npm run e2e:flow`) — 27
+  checks over the manifest guarantees (MV3, the exact permission set, no host
+  permissions, the 132-char description limit, all icons), the popup's guard on
+  an unscannable page, the service worker refusing an ungranted capture, and the
+  full library journey: card → palette by role → Google Fonts badge → all four
+  exports parsed → notes and tags surviving a reload → search → delete with no
+  orphaned thumbnail. `npm run e2e:all` runs all three e2e scripts.
+- **GitHub Actions**: `ci.yml` gates every push and PR on type-check, tests with
+  coverage, `npm audit`, build and the end-to-end suite under xvfb, and keeps the
+  store package as an artefact; `release.yml` repeats the gate on a `v*` tag,
+  checks the tag against `package.json`, and publishes the GitHub Release with
+  the package and the matching CHANGELOG section.
+- **Project site and hosted privacy policy** at
+  https://amigouk.github.io/StyleGrab/ and
+  https://amigouk.github.io/StyleGrab/privacy/ — the public URL the store
+  requires. Dark, monospace-led, and self-demonstrating: the hero prints the
+  page's own `:root` token block beside live swatches. No web fonts.
+- **Store paperwork**: `docs/STORE_LISTING.md` now carries the single-purpose
+  statement, paste-ready per-permission justifications, the "no remote code"
+  declaration and every data-usage answer; the new `docs/STORE_SUBMISSION.md`
+  walks the dashboard end to end and names what only the account owner can do.
+- **Fifth store screenshot** (tagging, notes and search) and a **1400×560
+  marquee tile** alongside the existing promo tile.
+- Manifest `homepage_url` and `minimum_chrome_version: 116` (the floor for the
+  native EyeDropper API).
+
+### Fixed
+- **The page's own background never reached the palette.** The scanner sampled
+  only `body *`, so the single most important colour on most pages was missing.
+  It now samples `<body>` itself, and takes the canvas colour from `<html>`
+  without dragging in the root element's default text colour and UA font.
+
+### Changed
+- Capture orchestration moved from `entrypoints/background.ts` into
+  `lib/capture.ts`; the service worker is now message routing only. No
+  behavioural change — it makes the flow testable outside a browser.
+- **Store screenshots and the README GIF are now captured from the real, loaded
+  extension** through a shared browser harness (`scripts/lib/harness.mjs`),
+  rather than re-rendering the components against a `chrome.*` shim.
+- The repository is public, and its Pages site is served from `/docs`.
+
 ## [0.3.4] — 2026-07-28
 
 ### Added
@@ -132,7 +188,8 @@ _Nothing yet._
 - Shared `AppFooter` / `AppVersion` components and the dark-theme token stylesheet (`assets/ui.css`).
 - Project docs: `README.md`, `CLAUDE.md`, MIT `LICENSE`, this changelog. Placeholder brand icons.
 
-[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.4...v0.4.0
 [0.3.4]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.1...v0.3.2

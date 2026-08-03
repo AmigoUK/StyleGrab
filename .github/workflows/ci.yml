@@ -56,5 +56,8 @@ jobs:
         with:
           name: stylegrab-packages
           path: .output/*.zip
+          # WXT writes into `.output`, which upload-artifact treats as hidden
+          # and skips unless told otherwise.
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 14
