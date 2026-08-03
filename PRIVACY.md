@@ -1,6 +1,6 @@
 # StyleGrab — Privacy Policy
 
-_Last updated: 2026-07-28_
+_Last updated: 2026-08-03_
 
 StyleGrab is a zero-backend browser extension. It has no account system, no
 server, and makes no network requests of its own.
@@ -40,6 +40,12 @@ There are deliberately **no** host permissions and no `tabs` permission.
 
 Delete any capture from the library with the **Delete** button. Removing the
 extension deletes all of its stored data.
+
+## Where this policy is published
+
+The canonical, publicly reachable copy of this policy — the URL given to the
+Chrome Web Store — is <https://amigouk.github.io/StyleGrab/privacy/>. This file
+is its source; the two must always say the same thing.
 
 ## Contact
 

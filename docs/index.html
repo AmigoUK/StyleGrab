@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StyleGrab — design tokens from any website</title>
+<meta name="description" content="A Chrome extension that captures a page's colour palette and typography and exports them as CSS variables, Tailwind config, SCSS or W3C design tokens. Free, no account, no backend.">
+<link rel="icon" href="store/favicon.png">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<div class="shell">
+  <header class="masthead">
+    <a class="mark" href="./">
+      <span class="dots" aria-hidden="true">
+        <i style="background:var(--blue)"></i><i style="background:var(--amber)"></i><i style="background:var(--green)"></i>
+      </span>
+      StyleGrab
+    </a>
+    <nav>
+      <a href="#what">What it does</a>
+      <a href="#export">Export</a>
+      <a href="#privacy">Privacy</a>
+      <a href="privacy/">Policy</a>
+      <a href="https://github.com/AmigoUK/StyleGrab">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <p class="eyebrow">Chrome extension · Manifest V3</p>
+      <h1>Design tokens<br><span class="dim">from any website.</span></h1>
+      <p class="lede">
+        Open a page, capture its palette and type stack, and export a file you paste
+        straight into your project. No transcribing hex codes from a screenshot.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/AmigoUK/StyleGrab/releases/latest">Download the latest build</a>
+        <a class="btn" href="https://github.com/AmigoUK/StyleGrab">Read the source</a>
+        <span class="note">MIT · free · no account</span>
+      </div>
+    </div>
+
+    <!-- Signature: the block below is the page's real stylesheet, printed back. -->
+    <div class="tokens">
+      <header>
+        <span>stylegrab-attv.uk.css</span>
+        <span>captured from this page</span>
+      </header>
+      <div class="grid">
+<pre><span class="prop">:root</span> {
+  <span class="prop">--void</span>:  #070b14;
+  <span class="prop">--panel</span>: #0f1626;
+  <span class="prop">--ink</span>:   #e6edf6;
+  <span class="prop">--blue</span>:  #3b82f6;
+  <span class="prop">--amber</span>: #f59e0b;
+  <span class="prop">--green</span>: #22c55e;
+}</pre>
+        <div class="swatches">
+          <div class="swatch" style="animation-delay:.05s"><b style="background:#070b14"></b><span>background</span><span>#070b14</span></div>
+          <div class="swatch" style="animation-delay:.11s"><b style="background:#0f1626"></b><span>background</span><span>#0f1626</span></div>
+          <div class="swatch" style="animation-delay:.17s"><b style="background:#e6edf6"></b><span>text</span><span>#e6edf6</span></div>
+          <div class="swatch" style="animation-delay:.23s"><b style="background:#3b82f6"></b><span>accent</span><span>#3b82f6</span></div>
+          <div class="swatch" style="animation-delay:.29s"><b style="background:#f59e0b"></b><span>accent</span><span>#f59e0b</span></div>
+          <div class="swatch" style="animation-delay:.35s"><b style="background:#22c55e"></b><span>accent</span><span>#22c55e</span></div>
+        </div>
+      </div>
+    </div>
+
+    <section id="what">
+      <h2>What it reads</h2>
+      <div class="roles">
+        <div class="role">
+          <h3>Colour, by role</h3>
+          <p>Backgrounds, text, accents and borders, pulled from computed styles and ranked by how often the page uses them — not a flat list of hex values.</p>
+        </div>
+        <div class="role">
+          <h3>Type, with its source</h3>
+          <p>Families, weights and sizes per element, and where each font is served from: Google Fonts, Adobe Fonts, self-hosted or a system face.</p>
+        </div>
+        <div class="role">
+          <h3>One exact pixel</h3>
+          <p>The built-in eyedropper uses Chrome's native picker, so you can grab a single colour from anywhere on screen and save it to the library.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="export">
+      <h2>What you get back</h2>
+      <div class="formats">
+        <span class="format">CSS custom properties</span>
+        <span class="format">Tailwind config</span>
+        <span class="format">SCSS variables</span>
+        <span class="format">W3C design tokens</span>
+      </div>
+      <p>Pick a format, hit Copy or Download. Every capture stays in a local library you can search by URL, hex, font family or your own notes.</p>
+<pre class="code"><span class="c">/* StyleGrab — https://acme.com/ */</span>
+:root {
+  <span class="c">/* Background */</span>
+  --bg-1: #0b1220;
+  --bg-2: #131c2e;
+  <span class="c">/* Accent */</span>
+  --accent-1: #6366f1;
+  <span class="c">/* Typography */</span>
+  --font-inter: Inter, system-ui, sans-serif;
+}</pre>
+    </section>
+
+    <section id="look">
+      <h2>What it looks like</h2>
+      <div class="shots">
+        <img src="store/shot-1-palette.png" alt="The StyleGrab library showing a capture's colours grouped into backgrounds, text, accents and borders.">
+        <img src="store/shot-3-export.png" alt="The export panel showing a capture rendered as a Tailwind config.">
+        <img src="store/shot-4-popup.png" alt="The StyleGrab popup with buttons to capture the page, pick a colour and open the library.">
+        <img src="store/shot-5-organise.png" alt="A capture tagged with a colour and icon, filtered by a search query.">
+      </div>
+    </section>
+
+    <section id="privacy">
+      <h2>Privacy</h2>
+      <p class="claim">Nothing you capture leaves your machine.</p>
+      <p>StyleGrab has no account, no backend and no analytics. Card metadata lives in your browser's extension storage and thumbnails in its IndexedDB. It asks for three permissions and no host permissions at all:</p>
+      <table>
+        <thead>
+          <tr><th scope="col">Permission</th><th scope="col">Why it is needed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>activeTab</td><td>Read the styles of, and screenshot, the one tab you trigger StyleGrab on — only on your click.</td></tr>
+          <tr><td>storage</td><td>Keep your capture library on this machine.</td></tr>
+          <tr><td>scripting</td><td>Inject the style scanner into that tab on demand, never in the background.</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:20px"><a href="privacy/">Read the full privacy policy →</a></p>
+    </section>
+
+    <section id="install">
+      <h2>Install</h2>
+      <p>A Chrome Web Store listing is on its way. Until it is live, load the build by hand:</p>
+      <ul class="plain">
+        <li>Download the <code>.zip</code> from the <a href="https://github.com/AmigoUK/StyleGrab/releases/latest">latest release</a> and unpack it.</li>
+        <li>Open <code>chrome://extensions</code> and turn on Developer mode.</li>
+        <li>Choose <strong>Load unpacked</strong> and select the unpacked folder.</li>
+      </ul>
+      <p>Needs Chrome 116 or newer. Building from source is three commands, documented in the <a href="https://github.com/AmigoUK/StyleGrab#development">README</a>.</p>
+    </section>
+  </main>
+</div>
+
+<footer class="credit">
+  <div class="shell">
+    <a href="mailto:dev@attv.uk">dev@attv.uk</a>
+    <span class="sep">·</span>
+    <span>Project &amp; Development: Tomasz &lsquo;Amigo&rsquo; Lewandowski</span>
+    <span class="sep">·</span>
+    <a href="https://www.attv.uk" target="_blank" rel="noreferrer">www.attv.uk</a>
+    <span class="sep">·</span>
+    <a href="https://github.com/AmigoUK/StyleGrab" target="_blank" rel="noreferrer">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>
