@@ -115,6 +115,25 @@ export async function launchExtension({ viewport = { width: 1280, height: 800 } 
   };
 }
 
+/**
+ * Headed Chromium can only capture the tab that is actually being composited,
+ * and right after a resize it briefly refuses. Bring the page to the front and
+ * retry rather than failing the whole run on a timing artefact.
+ */
+export async function screenshot(page, options = {}) {
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await page.bringToFront();
+      return await page.screenshot(options);
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(300);
+    }
+  }
+  throw lastError;
+}
+
 async function bundle(contents, loader = 'ts') {
   const out = await build({
     stdin: { contents, resolveDir: root, loader },
@@ -163,7 +182,7 @@ export async function captureFixture(context, origin, { viewport = { width: 1040
   await site.addScriptTag({ content: await scannerBundle() });
 
   const scan = await site.evaluate('window.__sgScan()');
-  const thumbnail = (await site.screenshot()).toString('base64');
+  const thumbnail = (await screenshot(site)).toString('base64');
 
   return { site, scan: { ...scan, url: FIXTURE_URL, title: FIXTURE_TITLE }, thumbnail };
 }

@@ -13,12 +13,26 @@ export function collectRawScan(): RawScan {
   const MAX_ELEMENTS = 4000;
   const samples: RawSample[] = [];
 
-  // `html` and `body` carry the page's own background and base type, which is
-  // usually the single most important colour on the page — sample them first,
-  // then everything they contain.
-  const all: HTMLElement[] = [document.documentElement, document.body].filter(Boolean);
+  // The page's own background usually sits on <body> and is the single most
+  // important colour on the page, so sample <body> itself and not just its
+  // descendants.
+  const all: HTMLElement[] = document.body ? [document.body] : [];
   all.push(...(document.querySelectorAll('body *') as NodeListOf<HTMLElement>));
   const limit = Math.min(all.length, MAX_ELEMENTS);
+
+  // When <body> is transparent the canvas colour comes from <html>. Contribute
+  // only its background: the root's default text colour and UA font are not
+  // things the page actually chose, and would pollute the palette and type list.
+  const rootStyle = getComputedStyle(document.documentElement);
+  samples.push({
+    tag: 'html',
+    color: 'transparent',
+    backgroundColor: rootStyle.backgroundColor,
+    borderColor: 'transparent',
+    fontFamily: '',
+    fontWeight: '',
+    fontSize: '',
+  });
   for (let i = 0; i < limit; i++) {
     const el = all[i];
     const cs = getComputedStyle(el);
