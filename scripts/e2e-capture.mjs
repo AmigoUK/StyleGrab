@@ -27,7 +27,7 @@ const scannerJs = transformSync(scannerTs, { loader: 'ts' }).code;
 
 const FIXTURE = `<!doctype html><html><head>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700">
-  </head><body>
+  </head><body style="background: rgb(2, 6, 23);">
   <div style="background: rgb(15,23,42); color: rgb(226,232,240); font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 32px; border-top: 2px solid rgb(51,65,85);">
     <a href="#" style="color: rgb(37,99,235);">a link</a>
     <p style="font-family: Georgia, serif; font-weight: 400; font-size: 16px; background: rgb(255,255,255);">paragraph</p>
@@ -46,6 +46,9 @@ try {
   const bgs = raw.samples.map((s) => s.backgroundColor);
   assert.ok(bgs.includes('rgb(15, 23, 42)'), 'dark background not sampled');
   assert.ok(bgs.includes('rgb(255, 255, 255)'), 'white background not sampled');
+  // The page's own background lives on <body>, which is the palette's most
+  // important colour — regression guard for sampling only `body *`.
+  assert.ok(bgs.includes('rgb(2, 6, 23)'), 'page (body) background not sampled');
 
   const linkColors = raw.samples.filter((s) => s.tag === 'a').map((s) => s.color);
   assert.ok(linkColors.includes('rgb(37, 99, 235)'), 'accent link colour not sampled');

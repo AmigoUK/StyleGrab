@@ -13,7 +13,11 @@ export function collectRawScan(): RawScan {
   const MAX_ELEMENTS = 4000;
   const samples: RawSample[] = [];
 
-  const all = document.querySelectorAll<HTMLElement>('body *');
+  // `html` and `body` carry the page's own background and base type, which is
+  // usually the single most important colour on the page — sample them first,
+  // then everything they contain.
+  const all: HTMLElement[] = [document.documentElement, document.body].filter(Boolean);
+  all.push(...(document.querySelectorAll('body *') as NodeListOf<HTMLElement>));
   const limit = Math.min(all.length, MAX_ELEMENTS);
   for (let i = 0; i < limit; i++) {
     const el = all[i];
