@@ -29,9 +29,9 @@ StyleGrab captures the visual DNA of any website and turns it into code you can 
 
 **What it does**
 
-Open any page and StyleGrab extracts its colour palette from computed styles, grouped by role — backgrounds, text, accents — not just a flat list of hex values. It reads the typography stack too: font families, weights and sizes per element, with the font source identified (Google Fonts, Adobe Fonts or self-hosted). Need one specific colour? The built-in eyedropper uses Chrome's native EyeDropper API for pixel-perfect picking anywhere on screen.
+Open any page and StyleGrab extracts its colour palette from computed styles, grouped by role — backgrounds, text, accents — not just a flat list of hex values. Near-identical shades are merged perceptually, and when a site defines its design tokens as CSS custom properties, StyleGrab exports the site's *own token names* — `--color-primary`, not `--accent-1`. It reads the typography stack too: font families, weights and sizes per element, with the font source identified (Google Fonts, Adobe Fonts or self-hosted). Need one specific colour? The built-in eyedropper uses Chrome's native EyeDropper API for pixel-perfect picking anywhere on screen.
 
-Every capture is saved as a card — screenshot thumbnail, palette, typography, URL and your notes — in a local library you can browse and search.
+Every capture is saved as a card — screenshot thumbnail, palette, typography, URL and your notes — in a local library you can browse, search and curate (merge, split or remove swatches). Each card includes a WCAG contrast check: the page's text colours crossed with its backgrounds, with AAA/AA verdicts at a glance.
 
 **Built for developers**
 
@@ -41,8 +41,10 @@ Other tools show you colours. StyleGrab hands you a file. One click exports any 
 - Tailwind config
 - SCSS variables
 - W3C design tokens (JSON)
+- Agent spec (STYLE.md) — a design-context file you can commit to a repo or paste straight into an AI coding agent like Claude Code or Cursor
+- Tokens Studio JSON, importable into the Figma plugin
 
-Paste it straight into your project. No transcribing hex codes from a screenshot.
+Paste it straight into your project. No transcribing hex codes from a screenshot. Capture any site's visual DNA — and hand it to your coding agent.
 
 **Privacy first**
 

@@ -39,7 +39,7 @@
     "wxt": "^0.20.27"
   },
   "overrides": {
-    "brace-expansion": "5.0.8",
+    "brace-expansion": "^5.0.9",
     "tar": "^7.5.20",
     "tmp": "^0.2.7",
     "adm-zip": "^0.6.0",
