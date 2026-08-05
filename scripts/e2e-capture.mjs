@@ -27,6 +27,9 @@ const scannerJs = transformSync(scannerTs, { loader: 'ts' }).code;
 
 const FIXTURE = `<!doctype html><html><head>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700">
+  <style>
+    :root { --brand: #635bff; --surface: var(--brand); --radius: 8px; }
+  </style>
   </head><body style="background: rgb(2, 6, 23);">
   <div style="background: rgb(15,23,42); color: rgb(226,232,240); font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 32px; border-top: 2px solid rgb(51,65,85);">
     <a href="#" style="color: rgb(37,99,235);">a link</a>
@@ -34,7 +37,10 @@ const FIXTURE = `<!doctype html><html><head>
   </div>
 </body></html>`;
 
-const browser = await chromium.launch({ headless: true });
+// PW_CHROMIUM_PATH lets environments with a pre-provisioned Chromium (no
+// playwright-managed download) point the scripts at their binary.
+const executablePath = process.env.PW_CHROMIUM_PATH || undefined;
+const browser = await chromium.launch({ headless: true, executablePath });
 try {
   const page = await browser.newPage();
   await page.setContent(FIXTURE, { waitUntil: 'load' });
@@ -64,6 +70,12 @@ try {
     raw.fontUrls.some((u) => u.includes('fonts.googleapis.com')),
     'Google Fonts URL not collected',
   );
+
+  // Root custom properties are harvested with var() chains resolved — the
+  // basis for exporting the site's own token names.
+  assert.equal(raw.rootProps['--brand'], '#635bff', 'root custom property not harvested');
+  assert.equal(raw.rootProps['--surface'], '#635bff', 'var() chain not resolved');
+  assert.equal(raw.rootProps['--radius'], '8px', 'non-colour root property not harvested');
 
   console.log(`✓ Scanner extracted ${raw.samples.length} samples and ${raw.fontUrls.length} font URL(s).`);
   console.log('  backgrounds:', [...new Set(bgs)].join(', '));

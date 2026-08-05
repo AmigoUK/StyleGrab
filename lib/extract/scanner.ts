@@ -56,6 +56,20 @@ export function collectRawScan(): RawScan {
       if (href) fontUrls.push(href);
     });
 
+  // Custom properties declared at the root are usually the site's real design
+  // tokens (--color-primary and friends). Collect the declared names from
+  // same-origin :root/html rules and resolve each through getComputedStyle so
+  // var() chains and theme overrides land on the value actually in effect.
+  const MAX_ROOT_PROPS = 400;
+  const rootProps: Record<string, string> = {};
+  let rootPropCount = 0;
+  const isRootSelector = (sel: string | undefined): boolean =>
+    !!sel &&
+    sel.split(',').some((part) => {
+      const t = part.trim();
+      return t === ':root' || t === 'html';
+    });
+
   for (const sheet of Array.from(document.styleSheets)) {
     try {
       for (const rule of Array.from(sheet.cssRules)) {
@@ -64,6 +78,16 @@ export function collectRawScan(): RawScan {
           const matches = src.match(/url\(([^)]+)\)/g);
           if (matches) {
             for (const m of matches) fontUrls.push(m.replace(/url\(|\)|['"]/g, '').trim());
+          }
+        } else if (rule instanceof CSSStyleRule && isRootSelector(rule.selectorText)) {
+          for (const prop of Array.from(rule.style)) {
+            if (!prop.startsWith('--') || prop in rootProps) continue;
+            if (rootPropCount >= MAX_ROOT_PROPS) break;
+            const value = rootStyle.getPropertyValue(prop).trim();
+            if (value) {
+              rootProps[prop] = value;
+              rootPropCount++;
+            }
           }
         }
       }
@@ -74,5 +98,11 @@ export function collectRawScan(): RawScan {
     }
   }
 
-  return { url: location.href, title: document.title, samples, fontUrls: [...new Set(fontUrls)] };
+  return {
+    url: location.href,
+    title: document.title,
+    samples,
+    fontUrls: [...new Set(fontUrls)],
+    rootProps,
+  };
 }

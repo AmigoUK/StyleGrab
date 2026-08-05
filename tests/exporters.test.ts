@@ -227,3 +227,84 @@ describe('familySlug and stackToArray', () => {
     expect(stackToArray('"Inter", , sans-serif,')).toEqual(['Inter', 'sans-serif']);
   });
 });
+
+describe('harvested token names in exports', () => {
+  const named: StyleCard = {
+    ...card,
+    palette: {
+      background: [
+        { hex: '#0f172a', count: 10, name: 'surface' },
+        { hex: '#ffffff', count: 3 },
+      ],
+      text: [{ hex: '#e2e8f0', count: 8 }],
+      accent: [{ hex: '#2563eb', count: 5, name: 'brand' }],
+      border: [],
+    },
+  };
+
+  it('CSS uses the site name where present, numbered fallback elsewhere', () => {
+    const css = toCssVariables(named);
+    expect(css).toContain('  --surface: #0f172a;');
+    expect(css).toContain('  --bg-2: #ffffff;');
+    expect(css).toContain('  --text-1: #e2e8f0;');
+    expect(css).toContain('  --brand: #2563eb;');
+    expect(css).not.toContain('--bg-1:');
+  });
+
+  it('SCSS mirrors the same names', () => {
+    const scss = toScssVariables(named);
+    expect(scss).toContain('$surface: #0f172a;');
+    expect(scss).toContain('$bg-2: #ffffff;');
+    expect(scss).toContain('$brand: #2563eb;');
+  });
+
+  it('Tailwind and W3C use the name as the token key', () => {
+    const tw = toTailwindConfig(named);
+    const module = { exports: {} as { theme?: { extend?: { colors?: Record<string, Record<string, string>> } } } };
+    new Function('module', tw)(module);
+    expect(module.exports.theme!.extend!.colors!.background).toEqual({
+      surface: '#0f172a',
+      '2': '#ffffff',
+    });
+
+    const w3c = JSON.parse(toW3CTokens(named));
+    expect(w3c.color.background.surface.$value).toBe('#0f172a');
+    expect(w3c.color.accent.brand.$value).toBe('#2563eb');
+  });
+
+  it('disambiguates when the same site name lands in two roles of one namespace', () => {
+    const collide: StyleCard = {
+      ...card,
+      palette: {
+        background: [{ hex: '#ffffff', count: 5, name: 'base' }],
+        text: [{ hex: '#111111', count: 4, name: 'base' }],
+        accent: [],
+        border: [],
+      },
+    };
+    const css = toCssVariables(collide);
+    expect(css).toContain('  --base: #ffffff;');
+    expect(css).toContain('  --base-2: #111111;');
+    const scss = toScssVariables(collide);
+    expect(scss).toContain('$base: #ffffff;');
+    expect(scss).toContain('$base-2: #111111;');
+  });
+
+  it('disambiguates a site name colliding with a numbered fallback', () => {
+    const collide: StyleCard = {
+      ...card,
+      palette: {
+        background: [
+          { hex: '#0f172a', count: 5 },
+          { hex: '#ffffff', count: 4, name: 'bg-1' },
+        ],
+        text: [],
+        accent: [],
+        border: [],
+      },
+    };
+    const css = toCssVariables(collide);
+    expect(css).toContain('  --bg-1: #0f172a;');
+    expect(css).toContain('  --bg-1-2: #ffffff;');
+  });
+});

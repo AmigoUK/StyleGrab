@@ -25,6 +25,13 @@ export interface Swatch {
    * with — merges must always be reversible.
    */
   merged?: { hex: string; count: number }[];
+  /**
+   * The site's own token name for this colour, harvested from a same-origin
+   * `:root`/`html` custom property (without the `--` prefix). When present,
+   * exporters emit it instead of a numbered fallback — the site's actual
+   * design-token name beats our guess.
+   */
+  name?: string;
 }
 
 /** Colours grouped by the role they play, each list ranked by frequency. */

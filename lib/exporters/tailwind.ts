@@ -1,6 +1,6 @@
 import type { ColorRole, StyleCard } from '../types';
 import { COLOR_ROLES } from '../types';
-import { stackToArray, uniqueFamilyNames } from './util';
+import { stackToArray, swatchTokenNames, uniqueFamilyNames } from './util';
 
 /**
  * Exports a StyleCard as a Tailwind config fragment (`theme.extend`), ready to
@@ -13,8 +13,9 @@ export function toTailwindConfig(card: StyleCard): string {
     const swatches = card.palette[role];
     if (!swatches.length) continue;
     const group: Record<string, string> = {};
+    const names = swatchTokenNames(swatches, (i) => String(i + 1));
     swatches.forEach((swatch, i) => {
-      group[String(i + 1)] = swatch.hex;
+      group[names[i]] = swatch.hex;
     });
     colors[role] = group;
   }

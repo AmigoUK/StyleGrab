@@ -1,5 +1,6 @@
 import { putThumbnail } from './captureStore';
 import { aggregatePalette } from './extract/colors';
+import { applyTokenNames } from './extract/customProps';
 import { collectRawScan } from './extract/scanner';
 import type { RawScan } from './extract/types';
 import { aggregateTypography } from './extract/typography';
@@ -30,7 +31,7 @@ export async function runCapture(): Promise<CaptureResponse> {
   const scan: ScanResult = {
     url: raw.url,
     title: raw.title,
-    palette: aggregatePalette(raw.samples),
+    palette: applyTokenNames(aggregatePalette(raw.samples), raw.rootProps),
     typography: aggregateTypography(raw.samples, raw.fontUrls),
   };
   const card = await addCard(scan);
