@@ -157,6 +157,27 @@ label {
   color: var(--muted);
 }
 
+/* Tiny in-chip curation buttons: split a perceptual merge, remove a swatch. */
+.swatch-action {
+  flex: 0 0 auto;
+  padding: 0 5px;
+  min-width: 0;
+  height: 16px;
+  line-height: 14px;
+  font-size: 10px;
+  font-family: inherit;
+  color: var(--faint);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.swatch-action:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
 .source-badge {
   flex: 0 0 auto;
   padding: 1px 8px;

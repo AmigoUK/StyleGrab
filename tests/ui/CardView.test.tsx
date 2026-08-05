@@ -165,6 +165,78 @@ describe('CardView — export', () => {
   });
 });
 
+describe('CardView — palette curation', () => {
+  it('removes a swatch and persists the curated palette', async () => {
+    const card = await addCard({ ...richCard }, '');
+    render(<CardView card={card} onDelete={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove background #ffffff' }));
+
+    expect(screen.queryByText('#ffffff')).toBeNull();
+    await waitFor(async () =>
+      expect((await getCard(card.id))?.palette.background.map((s) => s.hex)).toEqual(['#0a2540']),
+    );
+  });
+
+  it('drops a role section entirely when its last swatch is removed', async () => {
+    const card = await addCard({ ...richCard }, '');
+    render(<CardView card={card} onDelete={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove accent #635bff' }));
+
+    expect(screen.queryByText('Accents')).toBeNull();
+  });
+
+  it('feeds the curated palette into the export preview', async () => {
+    const card = await addCard({ ...richCard }, '');
+    render(<CardView card={card} onDelete={vi.fn()} />);
+    const preview = document.querySelector('.export-preview') as HTMLTextAreaElement;
+    expect(preview.value).toContain('--bg-2: #ffffff;');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove background #ffffff' }));
+
+    await waitFor(() => expect(preview.value).not.toContain('#ffffff'));
+    expect(preview.value).toContain('--bg-1: #0a2540;');
+  });
+
+  it('splits a perceptual merge back into its member swatches', async () => {
+    const card = await addCard(
+      {
+        ...richCard,
+        palette: {
+          ...richCard.palette,
+          background: [
+            { hex: '#ffffff', count: 5, merged: [{ hex: '#fefefe', count: 2 }] },
+            { hex: '#0a2540', count: 4 },
+          ],
+        },
+      },
+      '',
+    );
+    render(<CardView card={card} onDelete={vi.fn()} />);
+    expect(screen.queryByText('#fefefe')).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Split background #ffffff' }));
+
+    // 5 = 3 own + 2 absorbed, so after the split the canonical keeps 3.
+    expect(screen.getByText('#fefefe')).toBeTruthy();
+    await waitFor(async () =>
+      expect((await getCard(card.id))?.palette.background).toEqual([
+        { hex: '#0a2540', count: 4 },
+        { hex: '#ffffff', count: 3 },
+        { hex: '#fefefe', count: 2 },
+      ]),
+    );
+    // The split is gone for good — no dangling split button.
+    expect(screen.queryByRole('button', { name: 'Split background #ffffff' })).toBeNull();
+  });
+
+  it('shows no split affordance on swatches that merged nothing', () => {
+    renderCard();
+    expect(screen.queryByRole('button', { name: /^Split / })).toBeNull();
+  });
+});
+
 describe('CardView — notes and tagging', () => {
   it('persists edited notes when the field loses focus', async () => {
     const card = await addCard({ ...richCard }, '');
