@@ -18,6 +18,13 @@ export interface Swatch {
   hex: string;
   /** Number of elements that used this colour in this role — drives ranking. */
   count: number;
+  /**
+   * Near-duplicate colours absorbed into this swatch by perceptual clustering
+   * (ΔE2000 ≤ threshold). Their counts are included in `count`. Kept so the
+   * library UI can show what was merged and split a merge the user disagrees
+   * with — merges must always be reversible.
+   */
+  merged?: { hex: string; count: number }[];
 }
 
 /** Colours grouped by the role they play, each list ranked by frequency. */
