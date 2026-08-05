@@ -128,6 +128,7 @@ async function popupShot(origin) {
 
   const context = await chromium.launchPersistentContext('', {
     headless: false,
+    executablePath: process.env.PW_CHROMIUM_PATH || undefined,
     viewport: { width: 1100, height: 800 },
     args: [`--disable-extensions-except=${build}`, `--load-extension=${build}`],
   });

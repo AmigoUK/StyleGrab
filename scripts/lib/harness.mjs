@@ -98,6 +98,7 @@ export async function launchExtension({ viewport = { width: 1280, height: 800 } 
   requireBuild();
   const context = await chromium.launchPersistentContext('', {
     headless: false,
+    executablePath: process.env.PW_CHROMIUM_PATH || undefined,
     viewport,
     args: [`--disable-extensions-except=${extPath}`, `--load-extension=${extPath}`],
   });
