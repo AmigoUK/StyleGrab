@@ -165,6 +165,28 @@ describe('CardView — export', () => {
   });
 });
 
+describe('CardView — contrast readout', () => {
+  it('shows text-on-background pairs with a WCAG verdict', () => {
+    renderCard();
+
+    expect(screen.getByText('Contrast')).toBeTruthy();
+    // richCard: text #425466 crossed with backgrounds #0a2540 and #ffffff.
+    expect(screen.getByText('#425466 on #ffffff')).toBeTruthy();
+    expect(screen.getByText('#425466 on #0a2540')).toBeTruthy();
+    // Dark slate on white passes AA; the same slate on near-navy fails.
+    expect(screen.getAllByText(/^(AAA|AA|AA Large|Fail)$/).length).toBe(2);
+    expect(screen.getByText('Fail')).toBeTruthy();
+  });
+
+  it('drops the section when a curated palette leaves nothing to compare', async () => {
+    renderCard();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove text #425466' }));
+
+    expect(screen.queryByText('Contrast')).toBeNull();
+  });
+});
+
 describe('CardView — palette curation', () => {
   it('removes a swatch and persists the curated palette', async () => {
     const card = await addCard({ ...richCard }, '');

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { ColorIconPicker, type TagValue } from '@/components/ColorIconPicker';
 import { getThumbnail } from '@/lib/captureStore';
+import { contrastPairs, type WcagLevel } from '@/lib/contrast';
 import { EXPORT_FORMATS, getFormat } from '@/lib/exporters';
 import { updateCard } from '@/lib/storage';
 import type { ColorRole, FontSource, Palette, StyleCard } from '@/lib/types';
@@ -11,6 +12,13 @@ const ROLE_LABELS: Record<ColorRole, string> = {
   text: 'Text',
   accent: 'Accents',
   border: 'Borders',
+};
+
+const WCAG_BADGE_CLASS: Record<WcagLevel, string> = {
+  AAA: 'wcag-pass',
+  AA: 'wcag-pass',
+  'AA Large': 'wcag-large',
+  Fail: 'wcag-fail',
 };
 
 const SOURCE_LABELS: Record<FontSource, string> = {
@@ -89,6 +97,10 @@ export function CardView({ card, onDelete }: { card: StyleCard; onDelete: (id: s
     () => getFormat(formatId)?.render({ ...card, palette }) ?? '',
     [formatId, card, palette],
   );
+
+  // Recomputed from the curated palette, so removing a junk swatch also
+  // removes its contrast rows.
+  const contrast = useMemo(() => contrastPairs(palette), [palette]);
 
   const doCopy = async () => {
     await copyToClipboard(exported);
@@ -188,6 +200,29 @@ export function CardView({ card, onDelete }: { card: StyleCard; onDelete: (id: s
             </div>
           </div>
         ) : null,
+      )}
+
+      {contrast.length > 0 && (
+        <div>
+          <h2>Contrast</h2>
+          <div style="display: grid; gap: 6px;">
+            {contrast.map((p) => (
+              <div key={`${p.text.hex}-${p.background.hex}`} class="row" style="gap: 8px;">
+                <span
+                  class="contrast-sample"
+                  style={`background:${p.background.hex}; color:${p.text.hex}`}
+                >
+                  Aa
+                </span>
+                <span class="hint" style="flex: 1;">
+                  {p.text.hex} on {p.background.hex}
+                </span>
+                <span class="hint">{p.ratio.toFixed(2)}:1</span>
+                <span class={`wcag-badge ${WCAG_BADGE_CLASS[p.level]}`}>{p.level}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {card.typography.length > 0 && (
