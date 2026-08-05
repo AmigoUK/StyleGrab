@@ -140,7 +140,11 @@ try {
   assert.match(css, /^\/\* StyleGrab — https:\/\/acme\.com\/ \*\//, 'CSS export header missing');
   assert.match(css, /--bg-1: #[0-9a-f]{6};/, 'CSS export has no background variable');
   assert.match(css, /--font-inter: Inter/, 'CSS export has no Inter font variable');
-  ok('CSS custom properties export');
+  // The fixture's :root declares --brand for the accent colour: the export must
+  // carry the site's own token name, and the --tw-* decoy must be filtered out.
+  assert.match(css, /--brand: #6366f1;/, "site's own token name not harvested");
+  assert.ok(!css.includes('tw-surface'), 'framework token soup leaked into the export');
+  ok('CSS custom properties export (with harvested site token)');
 
   await library.selectOption('select', 'tailwind');
   const tw = await preview.inputValue();
@@ -159,6 +163,20 @@ try {
   assert.equal(tokens.color.background['1'].$type, 'color', 'W3C token type wrong');
   assert.equal(tokens.fontFamily.inter.$type, 'fontFamily', 'W3C font token missing');
   ok('W3C design tokens export parses');
+
+  await library.selectOption('select', 'agent');
+  const spec = await preview.inputValue();
+  assert.match(spec, /^# Style spec — Acme — Ship faster/, 'agent spec has no title');
+  assert.match(spec, /\| `--brand` \| `#6366f1` \|/, 'agent spec missing harvested token');
+  assert.match(spec, /## Contrast \(WCAG 2\.x\)/, 'agent spec missing contrast table');
+  assert.match(spec, /### Inter \(Google Fonts\)/, 'agent spec missing typography');
+  ok('Agent spec (STYLE.md) export');
+
+  await library.selectOption('select', 'tokens-studio');
+  const studio = JSON.parse(await preview.inputValue());
+  assert.equal(studio.global.accent.brand.value, '#6366f1', 'Tokens Studio missing named accent');
+  assert.equal(studio.global.fontFamilies.inter.type, 'fontFamilies', 'Tokens Studio font missing');
+  ok('Tokens Studio export parses');
 
   console.log('▶ notes, tagging and search');
   await library.getByPlaceholder('Your notes about this capture…').fill('hero gradient');

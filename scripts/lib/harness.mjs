@@ -28,7 +28,8 @@ export const extPath = resolve(root, '.output/chrome-mv3');
  */
 export const FIXTURE_HTML = `<!doctype html><html><head><meta charset="utf-8"><title>Acme — Ship faster</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800">
-<style>*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1220;color:#e6edf6}
+<style>:root{--brand:#6366f1;--tw-surface:#131c2e}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1220;color:#e6edf6}
 .wrap{max-width:820px;margin:0 auto;padding:40px 28px}header{display:flex;align-items:center;justify-content:space-between}
 .logo{font-weight:800;font-size:20px;color:#38bdf8}nav a{color:#94a3b8;text-decoration:none;margin-left:18px;font-size:14px}
 h1{font-family:Georgia,serif;font-size:44px;line-height:1.1;margin:36px 0 14px}.lead{color:#9fb0c3;font-size:18px;max-width:560px}
@@ -154,10 +155,12 @@ export function scannerBundle() {
   return bundle(
     `import { collectRawScan } from '@/lib/extract/scanner';
      import { aggregatePalette } from '@/lib/extract/colors';
+     import { applyTokenNames } from '@/lib/extract/customProps';
      import { aggregateTypography } from '@/lib/extract/typography';
      window.__sgScan = () => {
        const raw = collectRawScan();
-       return { url: raw.url, title: raw.title, palette: aggregatePalette(raw.samples),
+       return { url: raw.url, title: raw.title,
+                palette: applyTokenNames(aggregatePalette(raw.samples), raw.rootProps),
                 typography: aggregateTypography(raw.samples, raw.fontUrls) };
      };`,
   );

@@ -1,7 +1,9 @@
 import type { StyleCard } from '../types';
+import { toAgentSpec } from './agentSpec';
 import { toCssVariables } from './css';
 import { toScssVariables } from './scss';
 import { toTailwindConfig } from './tailwind';
+import { toTokensStudio } from './tokensStudio';
 import { toW3CTokens } from './w3c';
 
 /**
@@ -24,10 +26,12 @@ export const EXPORT_FORMATS: ExportFormat[] = [
   { id: 'scss', label: 'SCSS variables', ext: 'scss', mime: 'text/x-scss', render: toScssVariables },
   { id: 'tailwind', label: 'Tailwind config', ext: 'js', mime: 'text/javascript', render: toTailwindConfig },
   { id: 'w3c', label: 'W3C design tokens', ext: 'json', mime: 'application/json', render: toW3CTokens },
+  { id: 'agent', label: 'Agent spec (STYLE.md)', ext: 'md', mime: 'text/markdown', render: toAgentSpec },
+  { id: 'tokens-studio', label: 'Tokens Studio JSON', ext: 'json', mime: 'application/json', render: toTokensStudio },
 ];
 
 export function getFormat(id: string): ExportFormat | undefined {
   return EXPORT_FORMATS.find((f) => f.id === id);
 }
 
-export { toCssVariables, toScssVariables, toTailwindConfig, toW3CTokens };
+export { toAgentSpec, toCssVariables, toScssVariables, toTailwindConfig, toTokensStudio, toW3CTokens };

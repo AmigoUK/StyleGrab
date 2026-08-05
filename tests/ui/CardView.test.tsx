@@ -88,10 +88,17 @@ describe('CardView — export', () => {
     await waitFor(() => expect(preview.value).toContain('$bg-1: #0a2540;'));
   });
 
-  it('offers all four formats', () => {
+  it('offers all six formats', () => {
     renderCard();
     const options = [...screen.getByRole('combobox').querySelectorAll('option')];
-    expect(options.map((o) => o.value)).toEqual(['css', 'scss', 'tailwind', 'w3c']);
+    expect(options.map((o) => o.value)).toEqual([
+      'css',
+      'scss',
+      'tailwind',
+      'w3c',
+      'agent',
+      'tokens-studio',
+    ]);
   });
 
   it('copies the current export and confirms it', async () => {
