@@ -103,9 +103,9 @@ All generated from the real, loaded extension with `npm run shots`
 
 - [x] Icon 128×128 — `public/icon/128.png`
 - [x] Screenshots 1280×800 (×5) in `docs/store/`:
-  - `shot-1-palette.png` — colour palette grouped by role
-  - `shot-2-typography.png` — typography with the font source
-  - `shot-3-export.png` — Tailwind config export
+  - `shot-1-palette.png` — colour palette grouped by role, with curation chips
+  - `shot-2-contrast.png` — WCAG contrast verdicts above the typography stack
+  - `shot-3-export.png` — Agent spec (STYLE.md) export with harvested token names
   - `shot-4-popup.png` — popup (capture + eyedropper)
   - `shot-5-organise.png` — tagging, notes and search
 - [x] Small promo tile 440×280 — `docs/store/promo-440x280.png`
