@@ -9,6 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [0.5.0] — 2026-08-06
+
+The council release: capture fidelity first, then handoff. Palettes stop
+reading as DOM noise, exports carry the site's own token names, and every
+card can be handed straight to a teammate — or a coding agent.
+
+### Added
+- **Site token names in every export.** The scanner harvests custom properties
+  declared on same-origin `:root`/`html` rules (resolving `var()` chains via
+  computed style), and `lib/extract/customProps.ts` names matching swatches
+  after them — `--color-primary: #6c5ce7` exports as `--color-primary`, not
+  `--accent-1`. Framework token soup (`--tw-*`, `--bs-*`, `--wp--*`, …) is
+  filtered by a curated denylist; pages exposing nothing usable export exactly
+  as before.
+- **Perceptual palette clustering.** Near-duplicate colours (CIEDE2000 ≤ 2.5,
+  verified against the Sharma–Wu–Dalal reference pairs) merge into the most
+  frequent shade instead of ranking separately, with absorbed members recorded
+  on the swatch. Colours carrying alpha never merge.
+- **Palette curation in the library.** Each swatch chip can split a perceptual
+  merge back into its members ('+N') or remove the swatch entirely ('×');
+  the export preview always renders the curated palette.
+- **WCAG contrast readout** on every card: the page's top text colours crossed
+  with its top backgrounds, each pair carrying its ratio and AAA / AA /
+  AA Large / Fail verdict, recomputed live as the palette is curated.
+- **Agent spec (STYLE.md) export** — a fifth format: one self-describing
+  Markdown file (palette by role with token names and usage, the contrast
+  table, the typography scale with font sources, capture notes) written to be
+  committed to a repo or handed to a coding agent as design context.
+- **Tokens Studio JSON export** — a sixth format: `value`/`type` nodes under a
+  `global` set, importable straight into the Figma plugin.
+
+### Changed
+- Every browser-driving script honours `PW_CHROMIUM_PATH` for environments
+  with a pre-provisioned Chromium; the e2e flow now asserts all six export
+  formats and token harvesting (with a `--tw-*` decoy) against the real
+  built extension — 29 checks.
+
 ## [0.4.0] — 2026-08-03
 
 Everything the Chrome Web Store asks for, and the test coverage to stand behind
@@ -188,7 +225,8 @@ what is submitted.
 - Shared `AppFooter` / `AppVersion` components and the dark-theme token stylesheet (`assets/ui.css`).
 - Project docs: `README.md`, `CLAUDE.md`, MIT `LICENSE`, this changelog. Placeholder brand icons.
 
-[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/AmigoUK/StyleGrab/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.4...v0.4.0
 [0.3.4]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/AmigoUK/StyleGrab/compare/v0.3.2...v0.3.3

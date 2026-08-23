@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { toAgentSpec } from '../lib/exporters/agentSpec';
 import { toCssVariables } from '../lib/exporters/css';
+import { toTokensStudio } from '../lib/exporters/tokensStudio';
 import { toScssVariables } from '../lib/exporters/scss';
 import { toTailwindConfig } from '../lib/exporters/tailwind';
 import { toW3CTokens } from '../lib/exporters/w3c';
@@ -109,11 +111,20 @@ describe('uniqueFamilyNames', () => {
 });
 
 describe('export registry', () => {
-  it('exposes all four formats and resolves them by id', () => {
-    expect(EXPORT_FORMATS.map((f) => f.id)).toEqual(['css', 'scss', 'tailwind', 'w3c']);
+  it('exposes all six formats and resolves them by id', () => {
+    expect(EXPORT_FORMATS.map((f) => f.id)).toEqual([
+      'css',
+      'scss',
+      'tailwind',
+      'w3c',
+      'agent',
+      'tokens-studio',
+    ]);
     expect(getFormat('css')?.ext).toBe('css');
     expect(getFormat('tailwind')?.ext).toBe('js');
     expect(getFormat('w3c')?.mime).toBe('application/json');
+    expect(getFormat('agent')?.ext).toBe('md');
+    expect(getFormat('tokens-studio')?.mime).toBe('application/json');
     expect(getFormat('nope')).toBeUndefined();
   });
 });
@@ -208,7 +219,7 @@ describe('exporters — awkward font names', () => {
 });
 
 describe('export registry — every format renders', () => {
-  it('returns non-empty text for the same card in all four formats', () => {
+  it('returns non-empty text for the same card in every format', () => {
     for (const format of EXPORT_FORMATS) {
       const out = format.render(card);
       expect(out.length).toBeGreaterThan(0);
@@ -225,5 +236,179 @@ describe('familySlug and stackToArray', () => {
 
   it('drops empty entries and quotes when splitting a stack', () => {
     expect(stackToArray('"Inter", , sans-serif,')).toEqual(['Inter', 'sans-serif']);
+  });
+});
+
+describe('harvested token names in exports', () => {
+  const named: StyleCard = {
+    ...card,
+    palette: {
+      background: [
+        { hex: '#0f172a', count: 10, name: 'surface' },
+        { hex: '#ffffff', count: 3 },
+      ],
+      text: [{ hex: '#e2e8f0', count: 8 }],
+      accent: [{ hex: '#2563eb', count: 5, name: 'brand' }],
+      border: [],
+    },
+  };
+
+  it('CSS uses the site name where present, numbered fallback elsewhere', () => {
+    const css = toCssVariables(named);
+    expect(css).toContain('  --surface: #0f172a;');
+    expect(css).toContain('  --bg-2: #ffffff;');
+    expect(css).toContain('  --text-1: #e2e8f0;');
+    expect(css).toContain('  --brand: #2563eb;');
+    expect(css).not.toContain('--bg-1:');
+  });
+
+  it('SCSS mirrors the same names', () => {
+    const scss = toScssVariables(named);
+    expect(scss).toContain('$surface: #0f172a;');
+    expect(scss).toContain('$bg-2: #ffffff;');
+    expect(scss).toContain('$brand: #2563eb;');
+  });
+
+  it('Tailwind and W3C use the name as the token key', () => {
+    const tw = toTailwindConfig(named);
+    const module = { exports: {} as { theme?: { extend?: { colors?: Record<string, Record<string, string>> } } } };
+    new Function('module', tw)(module);
+    expect(module.exports.theme!.extend!.colors!.background).toEqual({
+      surface: '#0f172a',
+      '2': '#ffffff',
+    });
+
+    const w3c = JSON.parse(toW3CTokens(named));
+    expect(w3c.color.background.surface.$value).toBe('#0f172a');
+    expect(w3c.color.accent.brand.$value).toBe('#2563eb');
+  });
+
+  it('disambiguates when the same site name lands in two roles of one namespace', () => {
+    const collide: StyleCard = {
+      ...card,
+      palette: {
+        background: [{ hex: '#ffffff', count: 5, name: 'base' }],
+        text: [{ hex: '#111111', count: 4, name: 'base' }],
+        accent: [],
+        border: [],
+      },
+    };
+    const css = toCssVariables(collide);
+    expect(css).toContain('  --base: #ffffff;');
+    expect(css).toContain('  --base-2: #111111;');
+    const scss = toScssVariables(collide);
+    expect(scss).toContain('$base: #ffffff;');
+    expect(scss).toContain('$base-2: #111111;');
+  });
+
+  it('disambiguates a site name colliding with a numbered fallback', () => {
+    const collide: StyleCard = {
+      ...card,
+      palette: {
+        background: [
+          { hex: '#0f172a', count: 5 },
+          { hex: '#ffffff', count: 4, name: 'bg-1' },
+        ],
+        text: [],
+        accent: [],
+        border: [],
+      },
+    };
+    const css = toCssVariables(collide);
+    expect(css).toContain('  --bg-1: #0f172a;');
+    expect(css).toContain('  --bg-1-2: #ffffff;');
+  });
+});
+
+describe('toAgentSpec', () => {
+  const spec = toAgentSpec({
+    ...card,
+    notes: 'gradient hero worth stealing',
+    palette: {
+      ...card.palette,
+      background: [
+        { hex: '#0f172a', count: 10, name: 'surface' },
+        { hex: '#ffffff', count: 3 },
+      ],
+    },
+  });
+
+  it('opens with the title and a dated, self-describing preamble', () => {
+    expect(spec.startsWith('# Style spec — Example\n')).toBe(true);
+    expect(spec).toContain('> Captured from https://example.com/ on 2026-07-28');
+    expect(spec).toContain('design context');
+  });
+
+  it('tables every role with harvested names and numbered fallbacks', () => {
+    expect(spec).toContain('### Backgrounds');
+    expect(spec).toContain('| `--surface` | `#0f172a` | 10× |');
+    expect(spec).toContain('| `--bg-2` | `#ffffff` | 3× |');
+    expect(spec).toContain('| `--text-1` | `#e2e8f0` | 8× |');
+    expect(spec).toContain('| `--accent-1` | `#2563eb` | 5× |');
+    // Empty border role appears nowhere.
+    expect(spec).not.toContain('### Borders');
+  });
+
+  it('includes the WCAG contrast table for the captured pairs', () => {
+    expect(spec).toContain('## Contrast (WCAG 2.x)');
+    expect(spec).toContain('| `#e2e8f0` on `#0f172a` |');
+    expect(spec).toMatch(/\| \d+\.\d{2}:1 \| (AAA|AA|AA Large|Fail) \|/);
+  });
+
+  it('describes each font with stack, weights, sizes, source and token', () => {
+    expect(spec).toContain('### Inter (Google Fonts)');
+    expect(spec).toContain('- Stack: `Inter, system-ui, sans-serif`');
+    expect(spec).toContain('- Weights: 400, 700');
+    expect(spec).toContain('- Sizes: 16px, 32px');
+    expect(spec).toContain('token: `--font-inter`');
+  });
+
+  it('carries the user notes and stays stable for an empty card', () => {
+    expect(spec).toContain('## Notes\n\ngradient hero worth stealing');
+    const empty = toAgentSpec({
+      ...card,
+      notes: '',
+      typography: [],
+      palette: { background: [], text: [], accent: [], border: [] },
+    });
+    expect(empty).toContain('# Style spec — Example');
+    expect(empty).not.toContain('## Colours');
+    expect(empty).not.toContain('## Contrast');
+    expect(empty).not.toContain('## Typography');
+    expect(empty).not.toContain('## Notes');
+  });
+});
+
+describe('toTokensStudio', () => {
+  it('emits value/type nodes under a global set, using harvested names', () => {
+    const parsed = JSON.parse(
+      toTokensStudio({
+        ...card,
+        palette: {
+          ...card.palette,
+          background: [
+            { hex: '#0f172a', count: 10, name: 'surface' },
+            { hex: '#ffffff', count: 3 },
+          ],
+        },
+      }),
+    );
+    expect(parsed.global.background.surface).toEqual({ value: '#0f172a', type: 'color' });
+    expect(parsed.global.background['2']).toEqual({ value: '#ffffff', type: 'color' });
+    expect(parsed.global.accent['1']).toEqual({ value: '#2563eb', type: 'color' });
+    expect(parsed.global.fontFamilies.inter).toEqual({ value: 'Inter', type: 'fontFamilies' });
+    // Empty border role emits no group at all.
+    expect(parsed.global.border).toBeUndefined();
+  });
+
+  it('emits an empty global set for an empty card', () => {
+    const parsed = JSON.parse(
+      toTokensStudio({
+        ...card,
+        typography: [],
+        palette: { background: [], text: [], accent: [], border: [] },
+      }),
+    );
+    expect(parsed).toEqual({ global: {} });
   });
 });

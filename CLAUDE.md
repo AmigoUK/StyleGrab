@@ -1,5 +1,5 @@
 # Project Overview
-StyleGrab is a zero-backend Chrome extension (Manifest V3) that captures a website's visual DNA — colour palette (grouped by role) and typography (with the font source identified) — and exports it as code: CSS custom properties, Tailwind config, SCSS variables or W3C design tokens. Every capture is saved to a local library. No account, no network calls; all data stays on the user's machine.
+StyleGrab is a zero-backend Chrome extension (Manifest V3) that captures a website's visual DNA — colour palette (grouped by role, perceptually clustered, named after the site's own `:root` tokens where it declares them) and typography (with the font source identified) — and exports it as code: CSS custom properties, Tailwind config, SCSS variables, W3C design tokens, an agent-ready STYLE.md spec or Tokens Studio JSON. Cards carry a WCAG contrast readout and a curatable palette. Every capture is saved to a local library. No account, no network calls; all data stays on the user's machine.
 
 # Tech Stack
 - TypeScript 5.6 (strict), Preact 10.24

@@ -29,4 +29,10 @@ export interface RawScan {
   samples: RawSample[];
   /** Stylesheet hrefs, `<link>` hrefs and @font-face src URLs the page exposes. */
   fontUrls: string[];
+  /**
+   * Custom properties declared on same-origin `:root`/`html` rules, with their
+   * computed (var-substituted) values. Absent on pages whose stylesheets are
+   * all cross-origin — consumers must treat it as best-effort.
+   */
+  rootProps?: Record<string, string>;
 }

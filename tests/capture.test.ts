@@ -105,3 +105,27 @@ describe('runCapture — thumbnail is best-effort', () => {
     expect(warn).toHaveBeenCalled();
   });
 });
+
+describe('runCapture — token name harvesting', () => {
+  it('names saved swatches after the site tokens the scanner harvested', async () => {
+    fakeChrome.scanResult = {
+      ...scan,
+      rootProps: { '--surface-dark': 'rgb(15, 23, 42)', '--radius': '8px' },
+    } satisfies RawScan;
+
+    const res = await runCapture();
+    expect(res.ok).toBe(true);
+
+    const [card] = await loadCards();
+    expect(card.palette.background[0]).toMatchObject({ hex: '#0f172a', name: 'surface-dark' });
+    // Colours no token points at keep the numbered-fallback path (no name).
+    expect(card.palette.border[0].name).toBeUndefined();
+  });
+
+  it('saves a plain palette when the page exposes no root props at all', async () => {
+    fakeChrome.scanResult = scan;
+    await runCapture();
+    const [card] = await loadCards();
+    expect(card.palette.background[0].name).toBeUndefined();
+  });
+});

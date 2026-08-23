@@ -40,19 +40,19 @@ const POSTERS = [
     key: 'palette',
     badge: 'Capture',
     title: 'Colour palettes,\ngrouped by role',
-    sub: 'Backgrounds, text, accents and borders — pulled from computed styles and ranked by use, not a flat hex dump.',
+    sub: "Backgrounds, text, accents and borders — perceptually clustered, ranked by use, and exported under the site's own token names.",
   },
   {
-    key: 'typography',
-    badge: 'Read',
-    title: 'Typography, with\nthe font source',
-    sub: 'Families, weights and sizes per element, and whether each comes from Google Fonts, Adobe Fonts or self-hosted.',
+    key: 'contrast',
+    badge: 'Check',
+    title: 'Contrast and type,\nchecked at a glance',
+    sub: "Every capture crosses the page's text colours with its backgrounds — AAA to Fail — above the full typography stack with each font's source.",
   },
   {
     key: 'export',
     badge: 'Export',
-    title: 'Design tokens,\nnot screenshots',
-    sub: 'One click exports any capture as CSS variables, Tailwind config, SCSS or W3C design tokens — paste it straight in.',
+    title: 'Hand it to your\ncoding agent',
+    sub: 'Six formats: CSS variables, Tailwind, SCSS, W3C tokens, Tokens Studio JSON — or one STYLE.md spec an AI coding agent can build from.',
   },
   {
     key: 'popup',
@@ -63,8 +63,8 @@ const POSTERS = [
   {
     key: 'organise',
     badge: 'Organise',
-    title: 'A library you can\nactually search',
-    sub: 'Tag captures with a colour and an icon, add notes, and find any of them by URL, hex, font family or note.',
+    title: 'A library you can\nactually curate',
+    sub: 'Split merged shades, drop stray colours, tag captures with a colour and an icon, and find any of them by URL, hex, font or note.',
   },
 ];
 
@@ -111,7 +111,7 @@ function tile({ width, height, swatches, big }) {
     .sw span{width:${big ? 58 : 36}px;height:${big ? 32 : 20}px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
   </style></head><body><div class="p">
     <div class="top"><span class="mark"><span style="background:#3b82f6"></span><span style="background:#f59e0b"></span><span style="background:#22c55e"></span></span><span class="name">StyleGrab</span></div>
-    <div><div class="tag">Design tokens from any website.</div><div class="sub">Palettes &amp; type → CSS, Tailwind, SCSS, W3C. Free, no account.</div></div>
+    <div><div class="tag">Design tokens from any website.</div><div class="sub">Palettes, type &amp; contrast → CSS, Tailwind, W3C, STYLE.md. Free, no account.</div></div>
     <div class="sw">${swatches.map((h) => `<span style="background:${h}"></span>`).join('')}</div>
   </div></body></html>`;
 }
@@ -128,6 +128,7 @@ async function popupShot(origin) {
 
   const context = await chromium.launchPersistentContext('', {
     headless: false,
+    executablePath: process.env.PW_CHROMIUM_PATH || undefined,
     viewport: { width: 1100, height: 800 },
     args: [`--disable-extensions-except=${build}`, `--load-extension=${build}`],
   });
@@ -186,14 +187,16 @@ try {
   console.log('▶ library');
   shots.palette = (await screenshot(library)).toString('base64');
 
+  // Contrast sits directly above Typography in the card, so one shot carries
+  // both: the WCAG verdicts and the font stacks with their sources.
   await library
-    .getByRole('heading', { name: 'Typography' })
+    .getByRole('heading', { name: 'Contrast' })
     .evaluate((el) => el.scrollIntoView({ block: 'start' }));
   await library.evaluate(() => window.scrollBy(0, -24));
   await library.waitForTimeout(300);
-  shots.typography = (await screenshot(library)).toString('base64');
+  shots.contrast = (await screenshot(library)).toString('base64');
 
-  await library.selectOption('select', 'tailwind');
+  await library.selectOption('select', 'agent');
   await library
     .getByRole('heading', { name: 'Export' })
     .evaluate((el) => el.scrollIntoView({ block: 'start' }));

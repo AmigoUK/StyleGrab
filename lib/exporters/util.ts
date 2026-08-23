@@ -19,6 +19,27 @@ export function stackToArray(stack: string): string[] {
 }
 
 /**
+ * Final token names for a role's swatches: the site's harvested name when the
+ * swatch carries one, otherwise `fallback(i)`. Collisions are disambiguated
+ * with -2, -3, … against `seen`; pass a shared set when several roles emit
+ * into one namespace (a single `:root` block) so names stay unique across it.
+ */
+export function swatchTokenNames(
+  swatches: { name?: string }[],
+  fallback: (index: number) => string,
+  seen: Set<string> = new Set(),
+): string[] {
+  return swatches.map((swatch, i) => {
+    const base = swatch.name ?? fallback(i);
+    let name = base;
+    let n = 2;
+    while (seen.has(name)) name = `${base}-${n++}`;
+    seen.add(name);
+    return name;
+  });
+}
+
+/**
  * Yields unique names for a list of families, disambiguating collisions by
  * appending -2, -3, … so two families never map to the same key.
  */

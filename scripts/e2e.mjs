@@ -24,6 +24,7 @@ if (!existsSync(extPath)) {
 
 const context = await chromium.launchPersistentContext('', {
   headless: false,
+  executablePath: process.env.PW_CHROMIUM_PATH || undefined,
   args: [`--disable-extensions-except=${extPath}`, `--load-extension=${extPath}`],
 });
 

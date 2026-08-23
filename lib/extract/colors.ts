@@ -1,6 +1,7 @@
 import type { ColorRole, Palette, Swatch } from '../types';
 import { emptyPalette } from '../types';
-import { parseColorToHex } from './color';
+import { DELTA_E_MERGE_THRESHOLD, deltaE2000, hexToLab, parseColorToHex } from './color';
+import type { Lab } from './color';
 import type { RawSample } from './types';
 
 /**
@@ -23,6 +24,46 @@ function tally(map: Map<string, number>, hex: string | null): void {
 function rank(map: Map<string, number>): Swatch[] {
   return [...map.entries()]
     .map(([hex, count]) => ({ hex, count }))
+    .sort((a, b) => b.count - a.count || a.hex.localeCompare(b.hex));
+}
+
+/**
+ * Greedily merges perceptually indistinguishable swatches (ΔE2000 ≤ threshold)
+ * into the most frequent member, so #fefefe stops ranking separately from
+ * #ffffff. Input must be rank-sorted so canonicals are the most frequent.
+ * Colours carrying alpha never merge — their rendered appearance depends on
+ * what sits behind them. Absorbed members are recorded on `merged` so the UI
+ * can undo a merge.
+ */
+function clusterPerceptually(swatches: Swatch[]): Swatch[] {
+  const labs = new Map<string, Lab>();
+  const labOf = (hex: string): Lab => {
+    let lab = labs.get(hex);
+    if (!lab) {
+      lab = hexToLab(hex);
+      labs.set(hex, lab);
+    }
+    return lab;
+  };
+
+  const out: Swatch[] = [];
+  for (const s of swatches) {
+    const opaque = s.hex.length === 7;
+    const canon = opaque
+      ? out.find(
+          (c) =>
+            c.hex.length === 7 &&
+            deltaE2000(labOf(c.hex), labOf(s.hex)) <= DELTA_E_MERGE_THRESHOLD,
+        )
+      : undefined;
+    if (canon) {
+      canon.count += s.count;
+      (canon.merged ??= []).push({ hex: s.hex, count: s.count });
+    } else {
+      out.push({ ...s });
+    }
+  }
+  return out
     .sort((a, b) => b.count - a.count || a.hex.localeCompare(b.hex))
     .slice(0, MAX_PER_ROLE);
 }
@@ -46,9 +87,9 @@ export function aggregatePalette(samples: RawSample[]): Palette {
   }
 
   const palette = emptyPalette();
-  palette.background = rank(buckets.background);
-  palette.text = rank(buckets.text);
-  palette.accent = rank(buckets.accent);
-  palette.border = rank(buckets.border);
+  palette.background = clusterPerceptually(rank(buckets.background));
+  palette.text = clusterPerceptually(rank(buckets.text));
+  palette.accent = clusterPerceptually(rank(buckets.accent));
+  palette.border = clusterPerceptually(rank(buckets.border));
   return palette;
 }

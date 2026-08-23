@@ -1,6 +1,6 @@
 import type { ColorRole, StyleCard } from '../types';
 import { COLOR_ROLES } from '../types';
-import { stackToArray, uniqueFamilyNames } from './util';
+import { stackToArray, swatchTokenNames, uniqueFamilyNames } from './util';
 
 /**
  * Exports a StyleCard as W3C Design Tokens
@@ -23,8 +23,9 @@ export function toW3CTokens(card: StyleCard): string {
     const swatches = card.palette[role];
     if (!swatches.length) continue;
     const group: Record<string, ColorToken> = {};
+    const names = swatchTokenNames(swatches, (i) => String(i + 1));
     swatches.forEach((swatch, i) => {
-      group[String(i + 1)] = { $type: 'color', $value: swatch.hex };
+      group[names[i]] = { $type: 'color', $value: swatch.hex };
     });
     color[role] = group;
   }

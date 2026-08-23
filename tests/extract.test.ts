@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { parseColorToHex } from '../lib/extract/color';
+import {
+  DELTA_E_MERGE_THRESHOLD,
+  deltaE2000,
+  hexToLab,
+  parseColorToHex,
+} from '../lib/extract/color';
 import { aggregatePalette } from '../lib/extract/colors';
 import { detectFontSource, primaryFamily } from '../lib/extract/fontSource';
 import { aggregateTypography } from '../lib/extract/typography';
@@ -123,17 +128,27 @@ describe('parseColorToHex — edge cases', () => {
 
 describe('aggregatePalette — ranking and limits', () => {
   it('caps each role at 12 swatches, keeping the most frequent', () => {
+    // Six hues at three intensities plus black and white: every pairwise
+    // ΔE2000 is ≥ 8.5, so clustering leaves all 20 apart and only the cap
+    // applies. (A naive channel-step grid does NOT work here — at high
+    // luminance a 60-step in one channel drops under the merge threshold.)
+    const colours = [
+      [0, 0, 0], [255, 255, 255],
+      [64, 0, 0], [0, 64, 0], [0, 0, 64], [64, 64, 0], [64, 0, 64], [0, 64, 64],
+      [128, 0, 0], [0, 128, 0], [0, 0, 128], [128, 128, 0], [128, 0, 128], [0, 128, 128],
+      [191, 0, 0], [0, 191, 0], [0, 0, 191], [191, 191, 0], [191, 0, 191], [0, 191, 191],
+    ];
     const samples: RawSample[] = [];
-    for (let i = 0; i < 20; i++) {
+    colours.forEach(([r, g, b], i) => {
       // Colour i appears (20 - i) times, so the top 12 are i = 0…11.
       for (let n = 0; n < 20 - i; n++) {
-        samples.push(sample({ backgroundColor: `rgb(${i}, 0, 0)` }));
+        samples.push(sample({ backgroundColor: `rgb(${r}, ${g}, ${b})` }));
       }
-    }
+    });
     const palette = aggregatePalette(samples);
     expect(palette.background).toHaveLength(12);
     expect(palette.background[0].hex).toBe('#000000');
-    expect(palette.background.at(-1)!.hex).toBe('#0b0000');
+    expect(palette.background.at(-1)!.hex).toBe('#808000');
   });
 
   it('breaks count ties alphabetically by hex, so output is deterministic', () => {
@@ -153,6 +168,95 @@ describe('aggregatePalette — ranking and limits', () => {
 
   it('returns an empty palette for no samples', () => {
     expect(aggregatePalette([])).toEqual({ background: [], text: [], accent: [], border: [] });
+  });
+});
+
+describe('hexToLab / deltaE2000', () => {
+  it('maps white and black to the Lab extremes', () => {
+    const white = hexToLab('#ffffff');
+    expect(white.l).toBeCloseTo(100, 3);
+    expect(white.a).toBeCloseTo(0, 2);
+    expect(white.b).toBeCloseTo(0, 2);
+    const black = hexToLab('#000000');
+    expect(black.l).toBeCloseTo(0, 3);
+  });
+
+  it('ignores a trailing alpha channel', () => {
+    expect(hexToLab('#2563eb80')).toEqual(hexToLab('#2563eb'));
+  });
+
+  it('is zero for identical colours and symmetric', () => {
+    const a = hexToLab('#635bff');
+    const b = hexToLab('#0f172a');
+    expect(deltaE2000(a, a)).toBe(0);
+    expect(deltaE2000(a, b)).toBeCloseTo(deltaE2000(b, a), 10);
+  });
+
+  it('matches the Sharma, Wu & Dalal reference dataset', () => {
+    // Pairs 1 and 3 from the CIEDE2000 test data (Sharma et al., 2005).
+    expect(
+      deltaE2000({ l: 50, a: 2.6772, b: -79.7751 }, { l: 50, a: 0, b: -82.7485 }),
+    ).toBeCloseTo(2.0425, 4);
+    expect(
+      deltaE2000({ l: 50, a: 2.8361, b: -74.02 }, { l: 50, a: 0, b: -82.7485 }),
+    ).toBeCloseTo(3.4412, 4);
+  });
+});
+
+describe('aggregatePalette — perceptual clustering', () => {
+  it('merges indistinguishable shades into the most frequent, recording members', () => {
+    const samples: RawSample[] = [
+      sample({ backgroundColor: 'rgb(255, 255, 255)' }),
+      sample({ backgroundColor: 'rgb(255, 255, 255)' }),
+      sample({ backgroundColor: 'rgb(255, 255, 255)' }),
+      sample({ backgroundColor: 'rgb(254, 254, 254)' }),
+      sample({ backgroundColor: 'rgb(254, 254, 254)' }),
+    ];
+    const palette = aggregatePalette(samples);
+    expect(palette.background).toHaveLength(1);
+    expect(palette.background[0]).toEqual({
+      hex: '#ffffff',
+      count: 5,
+      merged: [{ hex: '#fefefe', count: 2 }],
+    });
+  });
+
+  it('keeps genuinely distinct brand colours apart', () => {
+    const palette = aggregatePalette([
+      sample({ backgroundColor: 'rgb(99, 91, 255)' }),
+      sample({ backgroundColor: 'rgb(37, 99, 235)' }),
+    ]);
+    expect(palette.background.map((s) => s.hex).sort()).toEqual(['#2563eb', '#635bff']);
+    expect(hexToLab('#635bff')).not.toEqual(hexToLab('#2563eb'));
+  });
+
+  it('never merges colours that carry alpha — their rendered look depends on the backdrop', () => {
+    const palette = aggregatePalette([
+      sample({ backgroundColor: 'rgb(255, 255, 255)' }),
+      sample({ backgroundColor: 'rgba(255, 255, 255, 0.5)' }),
+    ]);
+    expect(palette.background.map((s) => s.hex).sort()).toEqual(['#ffffff', '#ffffff80']);
+  });
+
+  it('re-ranks after merging: absorbed counts can promote a shade group', () => {
+    // #fefefe (2×) + #ffffff (2×) cluster to 4, overtaking #ff0000 (3×).
+    const samples: RawSample[] = [
+      sample({ backgroundColor: 'rgb(255, 0, 0)' }),
+      sample({ backgroundColor: 'rgb(255, 0, 0)' }),
+      sample({ backgroundColor: 'rgb(255, 0, 0)' }),
+      sample({ backgroundColor: 'rgb(254, 254, 254)' }),
+      sample({ backgroundColor: 'rgb(254, 254, 254)' }),
+      sample({ backgroundColor: 'rgb(255, 255, 255)' }),
+      sample({ backgroundColor: 'rgb(255, 255, 255)' }),
+    ];
+    const palette = aggregatePalette(samples);
+    expect(palette.background[0].hex).toBe('#fefefe');
+    expect(palette.background[0].count).toBe(4);
+    expect(palette.background[1]).toEqual({ hex: '#ff0000', count: 3 });
+  });
+
+  it('exposes the threshold constant used for merging', () => {
+    expect(DELTA_E_MERGE_THRESHOLD).toBe(2.5);
   });
 });
 

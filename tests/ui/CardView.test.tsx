@@ -88,10 +88,17 @@ describe('CardView — export', () => {
     await waitFor(() => expect(preview.value).toContain('$bg-1: #0a2540;'));
   });
 
-  it('offers all four formats', () => {
+  it('offers all six formats', () => {
     renderCard();
     const options = [...screen.getByRole('combobox').querySelectorAll('option')];
-    expect(options.map((o) => o.value)).toEqual(['css', 'scss', 'tailwind', 'w3c']);
+    expect(options.map((o) => o.value)).toEqual([
+      'css',
+      'scss',
+      'tailwind',
+      'w3c',
+      'agent',
+      'tokens-studio',
+    ]);
   });
 
   it('copies the current export and confirms it', async () => {
@@ -162,6 +169,100 @@ describe('CardView — export', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Download' }));
 
     expect(clicked[0].download).toBe('stylegrab-picks.css');
+  });
+});
+
+describe('CardView — contrast readout', () => {
+  it('shows text-on-background pairs with a WCAG verdict', () => {
+    renderCard();
+
+    expect(screen.getByText('Contrast')).toBeTruthy();
+    // richCard: text #425466 crossed with backgrounds #0a2540 and #ffffff.
+    expect(screen.getByText('#425466 on #ffffff')).toBeTruthy();
+    expect(screen.getByText('#425466 on #0a2540')).toBeTruthy();
+    // Dark slate on white passes AA; the same slate on near-navy fails.
+    expect(screen.getAllByText(/^(AAA|AA|AA Large|Fail)$/).length).toBe(2);
+    expect(screen.getByText('Fail')).toBeTruthy();
+  });
+
+  it('drops the section when a curated palette leaves nothing to compare', async () => {
+    renderCard();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove text #425466' }));
+
+    expect(screen.queryByText('Contrast')).toBeNull();
+  });
+});
+
+describe('CardView — palette curation', () => {
+  it('removes a swatch and persists the curated palette', async () => {
+    const card = await addCard({ ...richCard }, '');
+    render(<CardView card={card} onDelete={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove background #ffffff' }));
+
+    expect(screen.queryByText('#ffffff')).toBeNull();
+    await waitFor(async () =>
+      expect((await getCard(card.id))?.palette.background.map((s) => s.hex)).toEqual(['#0a2540']),
+    );
+  });
+
+  it('drops a role section entirely when its last swatch is removed', async () => {
+    const card = await addCard({ ...richCard }, '');
+    render(<CardView card={card} onDelete={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove accent #635bff' }));
+
+    expect(screen.queryByText('Accents')).toBeNull();
+  });
+
+  it('feeds the curated palette into the export preview', async () => {
+    const card = await addCard({ ...richCard }, '');
+    render(<CardView card={card} onDelete={vi.fn()} />);
+    const preview = document.querySelector('.export-preview') as HTMLTextAreaElement;
+    expect(preview.value).toContain('--bg-2: #ffffff;');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove background #ffffff' }));
+
+    await waitFor(() => expect(preview.value).not.toContain('#ffffff'));
+    expect(preview.value).toContain('--bg-1: #0a2540;');
+  });
+
+  it('splits a perceptual merge back into its member swatches', async () => {
+    const card = await addCard(
+      {
+        ...richCard,
+        palette: {
+          ...richCard.palette,
+          background: [
+            { hex: '#ffffff', count: 5, merged: [{ hex: '#fefefe', count: 2 }] },
+            { hex: '#0a2540', count: 4 },
+          ],
+        },
+      },
+      '',
+    );
+    render(<CardView card={card} onDelete={vi.fn()} />);
+    expect(screen.queryByText('#fefefe')).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Split background #ffffff' }));
+
+    // 5 = 3 own + 2 absorbed, so after the split the canonical keeps 3.
+    expect(screen.getByText('#fefefe')).toBeTruthy();
+    await waitFor(async () =>
+      expect((await getCard(card.id))?.palette.background).toEqual([
+        { hex: '#0a2540', count: 4 },
+        { hex: '#ffffff', count: 3 },
+        { hex: '#fefefe', count: 2 },
+      ]),
+    );
+    // The split is gone for good — no dangling split button.
+    expect(screen.queryByRole('button', { name: 'Split background #ffffff' })).toBeNull();
+  });
+
+  it('shows no split affordance on swatches that merged nothing', () => {
+    renderCard();
+    expect(screen.queryByRole('button', { name: /^Split / })).toBeNull();
   });
 });
 
